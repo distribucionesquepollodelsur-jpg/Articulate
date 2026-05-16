@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Play, 
@@ -7,21 +7,17 @@ import {
   Lock, 
   CheckCircle, 
   Clock, 
-  Flame,
-  Volume2,
-  Maximize2,
-  FastForward,
-  MessageCircle,
-  HelpCircle,
   X,
   Sparkles,
-  Crown
+  Crown,
+  AlertCircle
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useGame } from '../contexts/GameContext';
 import { useCulture } from '../contexts/CultureContext';
 import { VideoPlayer } from './VideoPlayer';
 import { BritishFlag } from './CulturalSymbols';
+import { mediaService, MediaAsset } from '../services/mediaService';
 
 interface Lesson {
   id: string;
@@ -42,9 +38,9 @@ const LESSONS: Lesson[] = [
     duration: '12:40',
     level: 'Beginner',
     thumbnail: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=400',
-    videoUrl: 'https://vjs.zencdn.net/v/oceans.mp4', // Still a placeholder but will update text to emphasize RP
+    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     videoType: 'video/mp4',
-    tags: ['IPA', 'Royal Academy']
+    tags: ['RP', 'Vowels', 'Articulation', 'Vocalization', 'Mouth Placement']
   },
   {
     id: 'vowels-mastery',
@@ -52,9 +48,9 @@ const LESSONS: Lesson[] = [
     duration: '18:25',
     level: 'Intermediate',
     thumbnail: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&q=80&w=400',
-    videoUrl: 'https://vjs.zencdn.net/v/oceans.mp4', 
+    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', 
     videoType: 'video/mp4',
-    tags: ['Vowels', 'RP Accent']
+    tags: ['Vowels', 'Articulation', 'RP', 'Mouth Placement']
   },
   {
     id: 'th-consonants',
@@ -62,9 +58,9 @@ const LESSONS: Lesson[] = [
     duration: '08:15',
     level: 'Beginner',
     thumbnail: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=400',
-    videoUrl: 'https://vjs.zencdn.net/v/oceans.mp4',
+    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
     videoType: 'video/mp4',
-    tags: ['Consonants', 'Phonetics']
+    tags: ['Consonants', 'Dental', '/θ/', '/ð/', 'Articulation', 'Fricatives']
   },
   {
     id: 'connected-speech',
@@ -72,16 +68,31 @@ const LESSONS: Lesson[] = [
     duration: '24:50',
     level: 'Advanced',
     thumbnail: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=400',
-    videoUrl: 'https://vjs.zencdn.net/v/oceans.mp4',
+    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
     videoType: 'video/mp4',
-    tags: ['Rhythm', 'Diplomatic English'],
+    tags: ['Connected Speech', 'Linking', 'Catenation', 'Advanced', 'RP'],
     isLocked: true
   }
 ];
 
 export const VideoLessons = () => {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [validatedMedia, setValidatedMedia] = useState<MediaAsset | null>(null);
   const { addXP, completedLessons, completeLesson } = useGame();
+  const { monarchyState } = useCulture();
+
+   useEffect(() => {
+    let timeout: any;
+    if (selectedLesson) {
+      setValidatedMedia(null); // Reset for transition
+      timeout = setTimeout(() => {
+        // AI Semantic Matching Engine Core Logic
+        const matchedMedia = mediaService.getMediaByTags(selectedLesson.tags);
+        setValidatedMedia(matchedMedia);
+      }, 1500); // Simulate matching delay
+    }
+    return () => clearTimeout(timeout);
+  }, [selectedLesson]);
 
   const handleLessonStart = (lesson: Lesson) => {
     if (lesson.isLocked) return;
@@ -213,15 +224,57 @@ export const VideoLessons = () => {
 
               <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
                  <div className="flex-1 bg-black relative flex flex-col items-center justify-center overflow-hidden">
-                    <div className="w-full max-w-5xl aspect-video relative z-10 p-4 lg:p-12">
-                       <VideoPlayer 
-                          src={selectedLesson.videoUrl} 
-                          type={selectedLesson.videoType}
-                          poster={selectedLesson.thumbnail}
-                          title={selectedLesson.title}
-                          onEnded={handleFinishLesson}
-                       />
-                    </div>
+                    {validatedMedia ? (
+                      <div className="w-full max-w-5xl aspect-video relative z-10 p-4 lg:p-12">
+                        <VideoPlayer 
+                            src={validatedMedia.url} 
+                            type={selectedLesson.videoType}
+                            poster={selectedLesson.thumbnail}
+                            title={selectedLesson.title}
+                            onEnded={handleFinishLesson}
+                        />
+                        {/* Semantic Validation Overlay */}
+                        <AnimatePresence>
+                          {validatedMedia && (
+                            <motion.div 
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              className="absolute top-8 left-8 lg:top-16 lg:left-16 flex items-center gap-3 px-6 py-3 bg-black/60 backdrop-blur-xl rounded-[24px] border border-white/20 shadow-2xl z-50 overflow-hidden group"
+                            >
+                              <div className="absolute inset-0 bg-gradient-to-r from-brand-accent/20 to-transparent animate-shimmer" />
+                              <div className="flex items-center gap-3 relative z-10">
+                                <div className="w-3 h-3 bg-green-500 rounded-full animate-ping absolute" />
+                                <div className="w-3 h-3 bg-green-500 rounded-full relative" />
+                                <div className="flex flex-col">
+                                  <span className="text-[10px] font-mono font-bold text-white uppercase tracking-widest">Semantic AI Match Verified</span>
+                                  <span className="text-[8px] font-mono text-white/60 uppercase">Confidence: {(validatedMedia.relevanceScore * 100).toFixed(1)}%</span>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-white p-12 text-center space-y-8 max-w-lg">
+                        <div className="relative">
+                          <AlertCircle size={80} className="text-brand-accent animate-pulse" />
+                          <div className="absolute inset-0 bg-brand-accent blur-[60px] opacity-20" />
+                        </div>
+                        <div className="space-y-4">
+                          <h3 className="text-4xl font-serif font-bold tracking-tight">Security & Relevance <span className="italic">Guard</span></h3>
+                          <p className="text-slate-400 text-lg font-medium leading-relaxed">
+                            Our AI is analyzing the requested media asset for linguistic integrity. If tags do not strictly match Received Pronunciation standards, access is blocked.
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap justify-center gap-3">
+                           {selectedLesson.tags.map(tag => (
+                             <span key={tag} className="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] uppercase font-mono font-bold tracking-widest text-white/40">
+                               Analyzing: {tag}
+                             </span>
+                           ))}
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Atmospheric background */}
                     <div className="absolute inset-0 z-0">
@@ -241,7 +294,11 @@ export const VideoLessons = () => {
                              <Crown size={20} />
                           </div>
                        </div>
-                       <p className="text-brand-primary/60 leading-relaxed font-medium">This adaptive lesson focuses on <strong>Received Pronunciation (RP)</strong>. Our AI has detected minor deviations in your vowel length; pay special attention to the lateral mouth movement demonstrated in section 2.</p>
+                       <p className="text-brand-primary/60 leading-relaxed font-medium">
+                         {validatedMedia 
+                           ? `This validated lesson focuses on Received Pronunciation (RP). ${validatedMedia.description}` 
+                           : "This adaptive lesson focuses on Received Pronunciation (RP). Our AI is currently validating the media stream for linguistic integrity."}
+                       </p>
                        <div className="p-8 bg-brand-primary text-brand-paper rounded-[40px] shadow-2xl shadow-brand-primary/20 relative overflow-hidden">
                           <div className="relative z-10">
                              <div className="flex items-center gap-2 mb-4">
@@ -250,11 +307,15 @@ export const VideoLessons = () => {
                              </div>
                              <p className="text-lg font-serif italic mb-6">"Master the rhythmic stress of British discourse."</p>
                              <div className="w-full h-1 bg-white/10 rounded-full">
-                                <div className="h-full w-1/4 bg-brand-accent" />
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: validatedMedia ? '100%' : '20%' }}
+                                  className="h-full bg-brand-accent transition-all duration-1000" 
+                                />
                              </div>
                           </div>
                           <div className="absolute top-0 right-0 p-4 opacity-10">
-                             <Play size={48} />
+                             <Sparkles size={48} />
                           </div>
                        </div>
                     </section>

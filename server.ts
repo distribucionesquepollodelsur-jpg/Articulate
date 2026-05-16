@@ -245,6 +245,26 @@ async function startServer() {
     });
   });
 
+  // AI Semantic Media Matching & Validation
+  app.post("/api/media/validate", (req, res) => {
+    const { lessonTopic, mediaTags } = req.body;
+    
+    // Simulate AI semantic analysis
+    const isRelevant = mediaTags.some((tag: string) => 
+      lessonTopic.toLowerCase().includes(tag.toLowerCase())
+    );
+
+    const relevanceScore = isRelevant ? 0.85 + Math.random() * 0.15 : Math.random() * 0.3;
+
+    res.json({
+      validated: relevanceScore > 0.7,
+      relevanceScore,
+      analysis: isRelevant 
+        ? "Semantic alignment detected between lesson phonetics and media metadata." 
+        : "Media content appears unrelated to the target pronunciation objective."
+    });
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

@@ -13,6 +13,7 @@ import {
   X,
   Music,
   Gamepad2,
+  Crown,
   Trophy,
   Flame,
   User,
@@ -63,6 +64,7 @@ export const Layout = ({ children, activeView, setView }: { children: React.Reac
     { id: 'ipa', label: 'IPA Chart', icon: Grid3X3 },
     { id: 'lab', label: 'Articulation Lab', icon: Mic2 },
     { id: 'studio', label: 'Studio', icon: Music },
+    { id: 'culture', label: 'Heritage', icon: Crown },
     { id: 'games', label: 'Games', icon: Gamepad2 },
     { id: 'lessons', label: 'Courses', icon: GraduationCap },
     { id: 'dictionary', label: 'Search', icon: Search },
@@ -96,105 +98,135 @@ export const Layout = ({ children, activeView, setView }: { children: React.Reac
   if (!user) {
     const loginWithProvider = async (provider: any) => {
       try {
+        // Try popup first as per instructions
         await signInWithPopup(auth, provider);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Auth failed:", error);
+        // Fallback to redirect if popup is blocked or fails
+        if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-by-user') return;
+        
+        try {
+          const { signInWithRedirect } = await import('firebase/auth');
+          await signInWithRedirect(auth, provider);
+        } catch (redirectError) {
+          console.error("Redirect auth failed:", redirectError);
+        }
       }
     };
 
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-brand-paper p-6 relative overflow-hidden font-sans">
-        {/* Background Decor */}
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-primary/5 rounded-full blur-[140px] -translate-y-1/2 translate-x-1/2 animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-brand-accent/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,var(--color-brand-primary)/0.02_2px,transparent_0)] bg-[size:100px_100px]" />
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-brand-paper p-8 md:p-12 relative overflow-hidden font-sans">
+        {/* Elite Background Decor */}
+        <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-brand-primary/5 rounded-full blur-[160px] -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-brand-accent/5 rounded-full blur-[140px] translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--color-brand-primary)/0.03_1.5px,transparent_0)] bg-[size:60px_60px]" />
 
-        <motion.div 
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: [0.23, 1, 0.32, 1] }}
-          className="max-w-xl w-full space-y-12 text-center relative z-10"
-        >
-          <div className="flex flex-col items-center gap-8">
-            <motion.div 
-              whileHover={{ rotate: -8, scale: 1.05 }}
-              className="w-32 h-32 bg-brand-primary rounded-[40px] flex items-center justify-center text-brand-paper shadow-2xl relative group"
-            >
-              <Mic2 size={64} className="group-hover:scale-110 transition-transform" />
-              <div className="absolute -top-4 -right-4 w-12 h-12 bg-brand-accent rounded-2xl flex items-center justify-center shadow-xl rotate-12">
-                 <Sparkles className="text-white" size={24} />
-              </div>
-            </motion.div>
-            <div className="space-y-4">
-              <h1 className="text-7xl font-serif font-bold tracking-tight mb-2">Articulate</h1>
-              <div className="flex items-center justify-center gap-4">
-                <div className="h-px w-8 bg-brand-primary/20" />
-                <p className="text-[12px] uppercase font-mono tracking-[0.4em] font-bold text-brand-accent">Beyond Pronunciation</p>
-                <div className="h-px w-8 bg-brand-primary/20" />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold tracking-tight leading-tight">
-              Master the architecture of <br/>
-              <span className="italic text-brand-primary/40 underline decoration-brand-accent decoration-wavy underline-offset-8">vocal performance.</span>
-            </h2>
-            <p className="text-brand-primary/60 text-lg md:text-xl leading-relaxed font-medium max-w-md mx-auto">
-              Join the elite ecosystem for high-precision British pronunciation training powered by server-side AI.
-            </p>
-          </div>
-
+        <div className="w-full max-w-6xl grid lg:grid-cols-2 gap-16 items-center relative z-10">
+          {/* Hero Content Column */}
           <motion.div 
-             className="flex flex-col gap-4 w-full max-w-sm mx-auto"
-             initial={{ opacity: 0 }}
-             animate={{ opacity: 1 }}
-             transition={{ delay: 0.5 }}
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1.2, ease: [0.23, 1, 0.32, 1] }}
+            className="space-y-12 text-left"
           >
-            <button 
-              onClick={() => loginWithProvider(new GoogleAuthProvider())}
-              className="w-full py-5 bg-brand-primary text-brand-paper rounded-[24px] font-bold uppercase tracking-widest text-[10px] shadow-2xl shadow-brand-primary/20 hover:bg-[#222] transition-all flex items-center justify-center gap-4 group relative overflow-hidden"
-            >
-              <img src="https://www.google.com/favicon.ico" className="w-5 h-5 grayscale group-hover:grayscale-0 transition-all" alt="G" />
-              <span>Continue with Google</span>
-              <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-            </button>
-            
-            <div className="grid grid-cols-2 gap-4">
-               <button 
-                 onClick={() => loginWithProvider(new GithubAuthProvider())}
-                 className="py-4 bg-white border border-brand-primary/5 rounded-[20px] font-bold uppercase tracking-widest text-[9px] hover:bg-brand-primary/5 transition-all flex items-center justify-center gap-3"
-               >
-                 <Github size={16} />
-                 <span>GitHub</span>
-               </button>
-               <button 
-                 onClick={() => loginWithProvider(new OAuthProvider('microsoft.com'))}
-                 className="py-4 bg-white border border-brand-primary/5 rounded-[20px] font-bold uppercase tracking-widest text-[9px] hover:bg-brand-primary/5 transition-all flex items-center justify-center gap-3"
-               >
-                 <Mail size={16} />
-                 <span>Microsoft</span>
-               </button>
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-brand-primary rounded-[20px] flex items-center justify-center text-brand-paper shadow-2xl rotate-[-4deg]">
+                  <Mic2 size={32} />
+                </div>
+                <div className="h-px w-24 bg-brand-primary/10" />
+                <span className="text-[10px] uppercase font-mono tracking-[0.4em] font-bold text-brand-accent">Est. 2026</span>
+              </div>
+              <h1 className="text-7xl md:text-8xl font-serif font-bold tracking-tight leading-[0.95] text-brand-primary">
+                Articulate <br/>
+                <span className="italic text-brand-accent">Performance</span>
+              </h1>
+              <p className="text-xl md:text-2xl text-brand-primary/60 leading-relaxed font-medium max-w-lg">
+                The elite ecosystem for high-precision British pronunciation and Received Pronunciation (RP) training.
+              </p>
             </div>
 
-            <div className="flex items-center justify-center gap-6 pt-4">
-               {[Trophy, Flame, GraduationCap].map((Icon, i) => (
-                 <div key={i} className="flex flex-col items-center gap-2 opacity-30">
-                    <Icon size={20} />
-                 </div>
-               ))}
+            <div className="grid grid-cols-2 gap-8 pt-8 border-t border-brand-primary/5">
+              {[
+                { label: 'IPA MASTERY', detail: '44 Sound Archetypes', icon: Grid3X3 },
+                { label: 'REAL-TIME AI', detail: 'Waveform Analysis', icon: Sparkles }
+              ].map((item, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex items-center gap-2 text-brand-accent">
+                    <item.icon size={16} />
+                    <span className="text-[10px] uppercase font-mono font-bold tracking-[0.2em]">{item.label}</span>
+                  </div>
+                  <p className="text-lg font-serif font-bold">{item.detail}</p>
+                </div>
+              ))}
             </div>
           </motion.div>
 
-          <div className="pt-12 space-y-2">
-             <p className="text-[10px] text-brand-primary/20 uppercase font-mono tracking-widest font-bold">
-               Authenticated via Firebase Security
-             </p>
-             <div className="flex justify-center gap-1">
-                {[1,2,3,4,5].map(i => <div key={i} className="w-1 h-1 rounded-full bg-brand-primary/10" />)}
-             </div>
-          </div>
-        </motion.div>
+          {/* Auth Card Column */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+            className="bg-white/80 backdrop-blur-2xl p-12 md:p-16 rounded-[48px] border border-brand-primary/5 shadow-2xl flex flex-col gap-10"
+          >
+            <div className="space-y-2">
+              <h2 className="text-3xl font-serif font-bold">Secure Access</h2>
+              <p className="text-brand-primary/40 text-sm font-medium">Please authenticate to access the linguistic laboratories.</p>
+            </div>
+
+            <div className="space-y-4">
+              <button 
+                onClick={() => loginWithProvider(new GoogleAuthProvider())}
+                className="w-full py-5 bg-brand-primary text-brand-paper rounded-[24px] font-bold uppercase tracking-widest text-[10px] shadow-2xl shadow-brand-primary/20 hover:bg-[#222] transition-all flex items-center justify-center gap-6 group active:scale-[0.98]"
+              >
+                <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="G" />
+                <span>Continue with Google</span>
+                <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+              </button>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <button 
+                  onClick={() => loginWithProvider(new GithubAuthProvider())}
+                  className="py-5 bg-white border border-brand-primary/10 rounded-[24px] font-bold uppercase tracking-widest text-[9px] hover:bg-brand-primary/5 transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+                >
+                  <Github size={18} />
+                  <span>GitHub</span>
+                </button>
+                <button 
+                  onClick={() => loginWithProvider(new OAuthProvider('microsoft.com'))}
+                  className="py-5 bg-white border border-brand-primary/10 rounded-[24px] font-bold uppercase tracking-widest text-[9px] hover:bg-brand-primary/5 transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+                >
+                  <Mail size={18} />
+                  <span>Microsoft</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-8 border-t border-brand-primary/5 flex items-center justify-between">
+              <div className="flex -space-x-3">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="w-10 h-10 rounded-full bg-brand-primary/5 border-2 border-white flex items-center justify-center overflow-hidden">
+                    <img src={`https://i.pravatar.cc/100?u=${i}`} className="w-full h-full object-cover grayscale opacity-50" />
+                  </div>
+                ))}
+              </div>
+              <p className="text-[9px] uppercase font-mono font-bold tracking-widest text-brand-primary/30">
+                12k+ Active Students
+              </p>
+            </div>
+            
+            <p className="text-[9px] text-center text-brand-primary/30 uppercase font-mono tracking-widest leading-relaxed">
+              By continuing, you agree to our <br/> Terms of Service and Privacy Protocol.
+            </p>
+          </motion.div>
+        </div>
+
+        {/* Global Footer Credits */}
+        <div className="absolute bottom-12 left-0 right-0 flex justify-center gap-12 opacity-20 pointer-events-none">
+          {['BBC LINGUISTICS', 'ROYAL ACADEMY', 'PHONETIC COUNCIL'].map(t => (
+             <span key={t} className="text-[10px] font-mono font-bold uppercase tracking-[0.5em]">{t}</span>
+          ))}
+        </div>
       </div>
     );
   }

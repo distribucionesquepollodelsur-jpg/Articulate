@@ -12,6 +12,7 @@ import { Dictionary } from './components/Dictionary';
 import { Studio } from './components/Studio';
 import { Games } from './components/Games';
 import { Leaderboard } from './components/Leaderboard';
+import { RoyalGallery } from './components/RoyalGallery';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, Trophy, Flame, ChevronRight, Mic2, Grid3X3, BookOpen, Search, Settings, Music, Gamepad2, Award, Users, Play, ArrowRight, Crown } from 'lucide-react';
 import { cn } from './lib/utils';
@@ -31,7 +32,8 @@ const RecommendationCard = ({ setView }: { setView: (v: string) => void }) => {
       'lab': 'lab',
       'lesson': 'lessons',
       'game': 'games',
-      'explore': 'ipa'
+      'explore': 'ipa',
+      'heritage': 'culture'
     };
     setView(viewMap[recommendation.type] || 'home');
   };
@@ -286,6 +288,7 @@ export default function App() {
             {view === 'ipa' && <IPAChart />}
             {view === 'lab' && <ArticulationLab />}
             {view === 'lessons' && <VideoLessons />}
+            {view === 'culture' && <RoyalGallery />}
             {view === 'games' && <Games />}
             {view === 'leaderboard' && <Leaderboard />}
             {view === 'studio' && <Studio />}

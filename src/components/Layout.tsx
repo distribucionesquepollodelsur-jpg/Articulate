@@ -10,7 +10,8 @@ import {
   GraduationCap, 
   ChevronRight,
   Menu,
-  X
+  X,
+  Music
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -45,6 +46,7 @@ export const Layout = ({ children, activeView, setView }: { children: React.Reac
     { id: 'home', label: 'Dashboard', icon: Home },
     { id: 'ipa', label: 'IPA Chart', icon: Grid3X3 },
     { id: 'lab', label: 'Articulation Lab', icon: Mic2 },
+    { id: 'studio', label: 'Music Studio', icon: Music },
     { id: 'lessons', label: 'Courses', icon: GraduationCap },
     { id: 'dictionary', label: 'Dictionary', icon: Search },
     { id: 'settings', label: 'Settings', icon: Settings },

@@ -9,11 +9,15 @@ import { IPAChart } from './components/IPAChart';
 import { ArticulationLab } from './components/ArticulationLab';
 import { CoursePortal } from './components/CoursePortal';
 import { Dictionary } from './components/Dictionary';
+import { Studio } from './components/Studio';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Trophy, Flame, ChevronRight, Mic2, Grid3X3, BookOpen, Search, Settings } from 'lucide-react';
+import { Sparkles, Trophy, Flame, ChevronRight, Mic2, Grid3X3, BookOpen, Search, Settings, Music } from 'lucide-react';
 import { cn } from './lib/utils';
+import { useGame, GameProvider } from './contexts/GameContext';
 
 const Dashboard = ({ setView }: { setView: (v: string) => void }) => {
+  const { xp, streak, level } = useGame();
+
   return (
     <div className="space-y-12">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -28,14 +32,18 @@ const Dashboard = ({ setView }: { setView: (v: string) => void }) => {
         </div>
         <div className="flex gap-4">
           <div className="p-6 bg-white border border-brand-primary/5 rounded-[32px] flex flex-col items-center min-w-[120px] shadow-sm">
-             <Flame className="text-orange-500 mb-2" size={24} />
-             <span className="text-3xl font-serif font-bold">14</span>
-             <span className="text-[10px] uppercase font-mono tracking-widest font-bold opacity-40">Day Streak</span>
+             <span className="text-[10px] uppercase font-mono tracking-widest font-bold opacity-40 mb-1">Level</span>
+             <span className="text-3xl font-serif font-bold">{level}</span>
           </div>
           <div className="p-6 bg-white border border-brand-primary/5 rounded-[32px] flex flex-col items-center min-w-[120px] shadow-sm">
-             <Trophy className="text-yellow-500 mb-2" size={24} />
-             <span className="text-3xl font-serif font-bold">2,450</span>
-             <span className="text-[10px] uppercase font-mono tracking-widest font-bold opacity-40">LXP Points</span>
+             <Flame className="text-orange-500 mb-2" size={24} />
+             <span className="text-3xl font-serif font-bold">{streak}</span>
+             <span className="text-[10px] uppercase font-mono tracking-widest font-bold opacity-40">Day Streak</span>
+          </div>
+          <div className="p-6 bg-brand-primary text-brand-paper rounded-[32px] flex flex-col items-center min-w-[120px] shadow-xl shadow-brand-primary/20">
+             <Trophy className="text-brand-accent mb-2" size={24} />
+             <span className="text-3xl font-serif font-bold">{xp.toLocaleString()}</span>
+             <span className="text-[10px] uppercase font-mono tracking-widest font-bold opacity-60">XP Total</span>
           </div>
         </div>
       </header>
@@ -90,6 +98,27 @@ const Dashboard = ({ setView }: { setView: (v: string) => void }) => {
           </div>
           <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest font-bold text-brand-paper">
             Go to Lesson <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+          </div>
+        </motion.button>
+
+        <motion.button 
+          whileHover={{ y: -5 }}
+          onClick={() => setView('studio')}
+          className="p-8 bg-brand-primary text-brand-paper rounded-[40px] text-left space-y-6 shadow-2xl shadow-brand-primary/30 group lg:col-span-3 border border-white/10"
+        >
+          <div className="w-12 h-12 bg-brand-accent/20 rounded-2xl flex items-center justify-center text-brand-accent">
+            <Music size={24} />
+          </div>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div>
+              <h3 className="text-3xl font-serif mb-2">The <span className="italic">Studio</span></h3>
+              <p className="text-brand-paper/60 text-lg leading-relaxed max-w-xl">
+                Master rhythm, intonation, and connected speech by singing phonetically transcribed British songs.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 text-sm font-mono uppercase tracking-widest font-bold text-brand-accent shrink-0">
+              Start Session <ChevronRight size={18} className="group-hover:translate-x-2 transition-transform" />
+            </div>
           </div>
         </motion.button>
       </section>
@@ -157,28 +186,33 @@ export default function App() {
   const [view, setView] = React.useState('home');
 
   return (
-    <Layout activeView={view} setView={setView}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={view}
-          initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-          transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-        >
-          {view === 'home' && <Dashboard setView={setView} />}
-          {view === 'ipa' && <IPAChart />}
-          {view === 'lab' && <ArticulationLab />}
-          {view === 'lessons' && <CoursePortal setView={setView} />}
-          {view === 'dictionary' && <Dictionary />}
-          {view === 'settings' && (
-             <div className="flex flex-col items-center justify-center p-24 text-brand-primary/20 space-y-4">
-                <Settings size={64} />
-                <p className="font-serif italic text-2xl">Settings coming soon...</p>
-             </div>
-          )}
-        </motion.div>
-      </AnimatePresence>
-    </Layout>
+    <GameProvider>
+      <Layout activeView={view} setView={setView}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={view}
+            initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+          >
+            <div className="view-switch">
+            {view === 'home' && <Dashboard setView={setView} />}
+            {view === 'ipa' && <IPAChart />}
+            {view === 'lab' && <ArticulationLab />}
+            {view === 'lessons' && <CoursePortal setView={setView} />}
+            {view === 'studio' && <Studio />}
+            {view === 'dictionary' && <Dictionary />}
+            {view === 'settings' && (
+               <div className="flex flex-col items-center justify-center p-24 text-brand-primary/20 space-y-4">
+                  <Settings size={64} />
+                  <p className="font-serif italic text-2xl">Settings coming soon...</p>
+               </div>
+            )}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </Layout>
+    </GameProvider>
   );
 }

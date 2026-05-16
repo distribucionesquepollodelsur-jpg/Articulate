@@ -1,6 +1,6 @@
 {
-  "name": "Articulate IPA: British English Mastery",
-  "description": "Premium interactive platform for learning British English pronunciation, IPA phonetics, and speech articulation with AI-powered coaching.",
+  "name": "Articulate Studio: The Future of Pronunciation",
+  "description": "An immersive AI-powered British English pronunciation platform featuring an interactive IPA lab, musical karaoke training, and cinematic linguistic visualization.",
   "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

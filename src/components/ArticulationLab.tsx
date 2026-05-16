@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Mic2, Play, Square, Loader2, RefreshCcw, Sparkles, AlertCircle, Volume2, ChevronDown } from 'lucide-react';
 import { cn, VOWELS, CONSONANTS } from '../lib/utils';
 import { audioService } from '../lib/audio';
+import { useGame } from '../contexts/GameContext';
 
 // Simple Articulation Animation (SVG based)
 const MouthVisualizer = ({ active, sound }: { active: boolean, sound: any }) => {
@@ -81,6 +82,8 @@ export const ArticulationLab = () => {
   const mediaRecorderRef = React.useRef<MediaRecorder | null>(null);
   const chunksRef = React.useRef<Blob[]>([]);
 
+  const { addXP } = useGame();
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -134,6 +137,7 @@ export const ArticulationLab = () => {
         
         const data = await response.json();
         setFeedback(data);
+        addXP(50);
         setIsAnalyzing(false);
       };
     } catch (err) {

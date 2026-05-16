@@ -59,7 +59,7 @@ async function startServer() {
         : `Say clearly in a British accent: ${text}`;
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.1-flash-tts-preview",
+        model: "gemini-2.0-flash",
         contents: [{ parts: [{ text: prompt }] }],
         config: {
           responseModalities: [Modality.AUDIO],

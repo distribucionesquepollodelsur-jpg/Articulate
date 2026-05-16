@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Volume2, Info, ChevronRight, Play, BookOpen, Mic2 } from 'lucide-react';
 import { VOWELS, CONSONANTS, cn } from '../lib/utils';
 import { audioService } from '../lib/audio';
+import { Articulation3D } from './Articulation3D';
+import { useGame } from '../contexts/GameContext';
 
 interface SoundCardProps {
   sound: any;
@@ -27,6 +29,13 @@ const SoundCard = ({ sound, onClick }: SoundCardProps) => (
 
 export const IPAChart = () => {
   const [selectedSound, setSelectedSound] = React.useState<any>(VOWELS[0]);
+  const { addXP } = useGame();
+
+  const handleSoundSelect = (sound: any) => {
+    setSelectedSound(sound);
+    audioService.speakIPASound(sound.symbol, sound.examples);
+    addXP(10);
+  };
 
   return (
     <div className="space-y-12">
@@ -49,7 +58,7 @@ export const IPAChart = () => {
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
           {VOWELS.map((v) => (
-            <SoundCard key={v.symbol} sound={v} onClick={() => setSelectedSound(v)} />
+            <SoundCard key={v.symbol} sound={v} onClick={() => handleSoundSelect(v)} />
           ))}
         </div>
       </section>
@@ -63,7 +72,7 @@ export const IPAChart = () => {
         </div>
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
           {CONSONANTS.map((c) => (
-            <SoundCard key={c.symbol} sound={c} onClick={() => setSelectedSound(c)} />
+            <SoundCard key={c.symbol} sound={c} onClick={() => handleSoundSelect(c)} />
           ))}
         </div>
       </section>
@@ -112,6 +121,11 @@ export const IPAChart = () => {
                   </div>
                 </div>
 
+                <div className="space-y-4">
+                   <h5 className="text-[10px] uppercase font-mono tracking-widest text-brand-primary/40 font-bold mb-2">3D Articulation Model</h5>
+                   <Articulation3D sound={selectedSound} />
+                </div>
+
                 <div className="space-y-6">
                   <h5 className="text-lg flex items-center gap-2">
                     <Volume2 size={20} className="text-brand-accent" />
@@ -121,7 +135,10 @@ export const IPAChart = () => {
                     {selectedSound.examples.map((ex: string) => (
                       <button 
                         key={ex} 
-                        onClick={() => audioService.speak(ex, 0.7)}
+                        onClick={() => {
+                          audioService.speak(ex, 0.7);
+                          addXP(5);
+                        }}
                         className="group flex items-center gap-2 px-6 py-3 bg-brand-primary text-brand-paper rounded-full text-lg font-medium shadow-lg shadow-brand-primary/10 hover:bg-brand-accent transition-all hover:scale-105"
                       >
                         <Play size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" />

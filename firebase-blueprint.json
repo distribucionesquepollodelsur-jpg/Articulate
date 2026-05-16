@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "UserProgress": {
+      "title": "User Progress",
+      "description": "Tracks a user's progress through lessons and IPA mastery.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "completedLessons": { "type": "array", "items": { "type": "string" } },
+        "masteredIPAs": { "type": "array", "items": { "type": "string" } },
+        "practiceStreak": { "type": "integer" },
+        "lastPractice": { "type": "string", "format": "date-time" },
+        "totalScore": { "type": "integer" }
+      },
+      "required": ["userId"]
+    },
+    "IPALevel": {
+      "title": "IPA Sound Data",
+      "description": "Educational data for a specific IPA symbol.",
+      "type": "object",
+      "properties": {
+        "symbol": { "type": "string" },
+        "category": { "type": "string", "enum": ["vowel", "consonant", "diphthong"] },
+        "name": { "type": "string" },
+        "voicing": { "type": "string", "enum": ["voiced", "voiceless"] },
+        "place": { "type": "string" },
+        "manner": { "type": "string" },
+        "instructions": { "type": "string" },
+        "examples": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["symbol", "name"]
+    },
+    "PracticeSession": {
+      "title": "Practice Session",
+      "description": "Records an AI coaching session.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "soundId": { "type": "string" },
+        "score": { "type": "number" },
+        "feedback": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "soundId", "score"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/progress/data": {
+      "schema": "UserProgress",
+      "description": "Detailed progress for a user."
+    },
+    "/ipa_data/{soundId}": {
+      "schema": "IPALevel",
+      "description": "Reference data for IPA sounds."
+    },
+    "/users/{userId}/practice_sessions/{sessionId}": {
+      "schema": "PracticeSession",
+      "description": "History of AI coaching attempts."
+    }
+  }
+}

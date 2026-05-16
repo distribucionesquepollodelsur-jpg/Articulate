@@ -1,0 +1,6 @@
+{
+  "name": "Articulate IPA: British English Mastery",
+  "description": "Premium interactive platform for learning British English pronunciation, IPA phonetics, and speech articulation with AI-powered coaching.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

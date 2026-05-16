@@ -34,7 +34,7 @@ export const IPAChart = () => {
   const handleSoundSelect = (sound: any) => {
     setSelectedSound(sound);
     audioService.speakIPASound(sound.symbol, sound.examples);
-    addXP(10);
+    addXP(10, 'explore', sound.symbol);
   };
 
   return (
@@ -137,7 +137,7 @@ export const IPAChart = () => {
                         key={ex} 
                         onClick={() => {
                           audioService.speak(ex, 0.7);
-                          addXP(5);
+                          addXP(5, 'explore', `${selectedSound.symbol}:${ex}`);
                         }}
                         className="group flex items-center gap-2 px-6 py-3 bg-brand-primary text-brand-paper rounded-full text-lg font-medium shadow-lg shadow-brand-primary/10 hover:bg-brand-accent transition-all hover:scale-105"
                       >

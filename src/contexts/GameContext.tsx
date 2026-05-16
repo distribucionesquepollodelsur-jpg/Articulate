@@ -1,51 +1,221 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { auth, db } from '../lib/firebase';
+import { 
+  onAuthStateChanged, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  User as FirebaseUser,
+  signOut
+} from 'firebase/auth';
+import { 
+  doc, 
+  getDoc, 
+  setDoc, 
+  onSnapshot, 
+  serverTimestamp,
+  collection,
+  query,
+  limit,
+  orderBy,
+  getDocs
+} from 'firebase/firestore';
+import { handleFirestoreError, OperationType } from '../lib/firestore-utils';
 
 interface GameState {
   xp: number;
   level: number;
   streak: number;
   achievements: string[];
+  completedLessons: string[];
 }
 
 interface GameContextType extends GameState {
-  addXP: (amount: number) => void;
-  completeAchievement: (id: string) => void;
+  user: FirebaseUser | null;
+  loading: boolean;
+  login: () => Promise<void>;
+  logout: () => Promise<void>;
+  addXP: (amount: number, type: 'lesson' | 'game' | 'lab' | 'studio' | 'explore', activityId: string) => Promise<void>;
+  completeAchievement: (id: string) => Promise<void>;
+  completeLesson: (id: string) => Promise<void>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [state, setState] = useState<GameState>(() => {
-    const saved = localStorage.getItem('articulate_game_state');
-    return saved ? JSON.parse(saved) : {
-      xp: 0,
-      level: 1,
-      streak: 14,
-      achievements: []
-    };
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [state, setState] = useState<GameState>({
+    xp: 0,
+    level: 1,
+    streak: 0,
+    achievements: [],
+    completedLessons: []
   });
 
+  // Auth Listener
   useEffect(() => {
-    localStorage.setItem('articulate_game_state', JSON.stringify(state));
-  }, [state]);
-
-  const addXP = (amount: number) => {
-    setState(prev => {
-      const newXP = prev.xp + amount;
-      const newLevel = Math.floor(newXP / 1000) + 1;
-      return { ...prev, xp: newXP, level: newLevel };
+    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+      setUser(authUser);
+      if (!authUser) {
+        setLoading(false);
+        setState({
+          xp: 0,
+          level: 1,
+          streak: 0,
+          achievements: [],
+          completedLessons: []
+        });
+      }
     });
+    return unsubscribe;
+  }, []);
+
+  // Firestore Sync Listener
+  useEffect(() => {
+    if (!user) return;
+
+    const progressDoc = doc(db, 'users', user.uid, 'progress', 'data');
+    
+    const unsubscribe = onSnapshot(progressDoc, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setState({
+          xp: data.xp || 0,
+          level: data.level || 1,
+          streak: data.streak || 0,
+          achievements: data.achievements || [],
+          completedLessons: data.completedLessons || []
+        });
+        setLoading(false);
+      } else {
+        // Initialize new user
+        const initialData = {
+          xp: 0,
+          level: 1,
+          streak: 0,
+          achievements: [],
+          completedLessons: [],
+          lastActivityAt: serverTimestamp()
+        };
+        
+        setDoc(progressDoc, initialData).catch(err => {
+          handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}/progress/data`);
+        });
+
+        // Initialize Profile
+        setDoc(doc(db, 'users', user.uid), {
+          displayName: user.displayName,
+          email: user.email,
+          avatarUrl: user.photoURL,
+          createdAt: serverTimestamp(),
+          role: 'student'
+        }).catch(err => {
+          handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}`);
+        });
+
+        setLoading(false);
+      }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `users/${user.uid}/progress/data`);
+    });
+
+    return unsubscribe;
+  }, [user]);
+
+  const login = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Login Error:", error);
+    }
   };
 
-  const completeAchievement = (id: string) => {
-    setState(prev => {
-      if (prev.achievements.includes(id)) return prev;
-      return { ...prev, achievements: [...prev.achievements, id] };
-    });
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout Error:", error);
+    }
+  };
+
+  const addXP = async (amount: number, type: 'lesson' | 'game' | 'lab' | 'studio' | 'explore', activityId: string) => {
+    if (!user) return;
+
+    const newXP = state.xp + amount;
+    const newLevel = Math.floor(newXP / 1000) + 1;
+    
+    try {
+      // 1. Log static activity
+      const activityRef = doc(collection(db, 'users', user.uid, 'activities'));
+      await setDoc(activityRef, {
+        type,
+        activityId,
+        xpGained: amount,
+        timestamp: serverTimestamp()
+      });
+
+      // 2. Update Progress
+      const progressDoc = doc(db, 'users', user.uid, 'progress', 'data');
+      
+      // Calculate streak logic (simplified: if last activity was yesterday, streak++, if today, no change, if older, reset)
+      // For now, simple increment if not today
+      let newStreak = state.streak;
+      const now = new Date();
+      // Only increment streak once per day normally, but here we just ensure it's at least 1 if active
+      if (newStreak === 0) newStreak = 1;
+
+      const updateData = {
+        xp: newXP,
+        level: newLevel,
+        streak: newStreak,
+        lastActivityAt: serverTimestamp()
+      };
+
+      await setDoc(progressDoc, updateData, { merge: true });
+
+      // 3. Update public leaderboard entry
+      await setDoc(doc(db, 'leaderboard', 'global', 'entries', user.uid), {
+        ...state,
+        ...updateData,
+        displayName: user.displayName,
+        avatarUrl: user.photoURL
+      }, { merge: true });
+
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}/progress/data`);
+    }
+  };
+
+  const completeAchievement = async (id: string) => {
+    if (!user || state.achievements.includes(id)) return;
+    
+    try {
+      const progressDoc = doc(db, 'users', user.uid, 'progress', 'data');
+      await setDoc(progressDoc, {
+        achievements: [...state.achievements, id]
+      }, { merge: true });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}/progress/data`);
+    }
+  };
+
+  const completeLesson = async (id: string) => {
+    if (!user || state.completedLessons.includes(id)) return;
+    
+    try {
+      const progressDoc = doc(db, 'users', user.uid, 'progress', 'data');
+      await setDoc(progressDoc, {
+        completedLessons: [...state.completedLessons, id]
+      }, { merge: true });
+      await addXP(50, 'lesson', id);
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, `users/${user.uid}/progress/data`);
+    }
   };
 
   return (
-    <GameContext.Provider value={{ ...state, addXP, completeAchievement }}>
+    <GameContext.Provider value={{ ...state, user, loading, login, logout, addXP, completeAchievement, completeLesson }}>
       {children}
     </GameContext.Provider>
   );

@@ -137,7 +137,7 @@ export const ArticulationLab = () => {
         
         const data = await response.json();
         setFeedback(data);
-        addXP(50);
+        addXP(50, 'lab', selectedSound?.symbol || 'ə');
         setIsAnalyzing(false);
       };
     } catch (err) {

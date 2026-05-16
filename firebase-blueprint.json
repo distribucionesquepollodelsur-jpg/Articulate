@@ -1,61 +1,63 @@
 {
   "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Public and private profile data for a user.",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["student", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["displayName", "email"]
+    },
     "UserProgress": {
       "title": "User Progress",
       "description": "Tracks a user's progress through lessons and IPA mastery.",
       "type": "object",
       "properties": {
-        "userId": { "type": "string" },
+        "xp": { "type": "integer" },
+        "level": { "type": "integer" },
+        "streak": { "type": "integer" },
+        "lastActivityAt": { "type": "string", "format": "date-time" },
         "completedLessons": { "type": "array", "items": { "type": "string" } },
-        "masteredIPAs": { "type": "array", "items": { "type": "string" } },
-        "practiceStreak": { "type": "integer" },
-        "lastPractice": { "type": "string", "format": "date-time" },
-        "totalScore": { "type": "integer" }
+        "achievements": { "type": "array", "items": { "type": "string" } },
+        "masteredIPAs": { "type": "array", "items": { "type": "string" } }
       },
-      "required": ["userId"]
+      "required": ["xp", "level", "streak"]
     },
-    "IPALevel": {
-      "title": "IPA Sound Data",
-      "description": "Educational data for a specific IPA symbol.",
+    "ActivityLog": {
+      "title": "Activity Log",
+      "description": "A record of a single educational activity.",
       "type": "object",
       "properties": {
-        "symbol": { "type": "string" },
-        "category": { "type": "string", "enum": ["vowel", "consonant", "diphthong"] },
-        "name": { "type": "string" },
-        "voicing": { "type": "string", "enum": ["voiced", "voiceless"] },
-        "place": { "type": "string" },
-        "manner": { "type": "string" },
-        "instructions": { "type": "string" },
-        "examples": { "type": "array", "items": { "type": "string" } }
-      },
-      "required": ["symbol", "name"]
-    },
-    "PracticeSession": {
-      "title": "Practice Session",
-      "description": "Records an AI coaching session.",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string" },
-        "soundId": { "type": "string" },
+        "type": { "type": "string", "enum": ["lesson", "game", "lab", "studio"] },
+        "activityId": { "type": "string" },
+        "xpGained": { "type": "integer" },
         "score": { "type": "number" },
-        "feedback": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" }
       },
-      "required": ["userId", "soundId", "score"]
+      "required": ["type", "activityId", "xpGained", "timestamp"]
     }
   },
   "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Core profile data."
+    },
     "/users/{userId}/progress/data": {
       "schema": "UserProgress",
       "description": "Detailed progress for a user."
     },
-    "/ipa_data/{soundId}": {
-      "schema": "IPALevel",
-      "description": "Reference data for IPA sounds."
+    "/users/{userId}/activities/{activityId}": {
+      "schema": "ActivityLog",
+      "description": "Log of user activities."
     },
-    "/users/{userId}/practice_sessions/{sessionId}": {
-      "schema": "PracticeSession",
-      "description": "History of AI coaching attempts."
+    "/leaderboard/global/entries/{userId}": {
+      "schema": "UserProgress",
+      "description": "Publicly visible progress for leaderboard rankings."
     }
   }
 }

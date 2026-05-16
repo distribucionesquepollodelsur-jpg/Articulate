@@ -29,7 +29,7 @@ interface GameScore {
 
 export const Games = () => {
   const [activeGame, setActiveGame] = useState<string | null>(null);
-  const { xp, level, addXP } = useGame();
+  const { xp, level, streak } = useGame();
 
   const gameModes = [
     {
@@ -49,12 +49,12 @@ export const Games = () => {
       difficulty: 'Intermediate'
     },
     {
-       id: 'speed-speak',
-       title: 'Speed Speak',
-       description: 'Can you recognize 20 sounds in under 60 seconds?',
-       icon: Timer,
-       color: 'bg-orange-500',
-       difficulty: 'Advanced'
+      id: 'speed-speak',
+      title: 'Speed Speak',
+      description: 'Can you recognize 20 sounds in under 60 seconds?',
+      icon: Timer,
+      color: 'bg-orange-500',
+      difficulty: 'Advanced'
     }
   ];
 
@@ -117,26 +117,26 @@ export const Games = () => {
             <h3 className="text-3xl font-serif font-bold">Your Performance</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
                <div>
-                  <p className="text-[10px] uppercase font-mono tracking-widest opacity-60 mb-2">Total Games</p>
-                  <p className="text-4xl font-serif font-bold">128</p>
+                  <p className="text-[10px] uppercase font-mono tracking-widest opacity-60 mb-2">Total LXP</p>
+                  <p className="text-4xl font-serif font-bold">{xp.toLocaleString()}</p>
                </div>
                <div>
-                  <p className="text-[10px] uppercase font-mono tracking-widest opacity-60 mb-2">Avg Accuracy</p>
-                  <p className="text-4xl font-serif font-bold text-brand-accent">94%</p>
+                  <p className="text-[10px] uppercase font-mono tracking-widest opacity-60 mb-2">Current Level</p>
+                  <p className="text-4xl font-serif font-bold text-brand-accent">{level}</p>
                </div>
                <div>
-                  <p className="text-[10px] uppercase font-mono tracking-widest opacity-60 mb-2">Rank</p>
-                  <p className="text-4xl font-serif font-bold">S</p>
+                  <p className="text-[10px] uppercase font-mono tracking-widest opacity-60 mb-2">Global Rank</p>
+                  <p className="text-4xl font-serif font-bold">--</p>
                </div>
                <div>
-                  <p className="text-[10px] uppercase font-mono tracking-widest opacity-60 mb-2">World Percentile</p>
-                  <p className="text-4xl font-serif font-bold">Top 2%</p>
+                  <p className="text-[10px] uppercase font-mono tracking-widest opacity-60 mb-2">Achievements</p>
+                  <p className="text-4xl font-serif font-bold">0</p>
                </div>
             </div>
          </div>
          <div className="relative z-10 w-48 h-48 rounded-full bg-white/10 backdrop-blur-3xl border border-white/20 flex flex-col items-center justify-center p-8 shadow-2xl">
             <Flame size={48} className="text-orange-500 mb-2" />
-            <span className="text-3xl font-bold">14</span>
+            <span className="text-3xl font-bold">{streak}</span>
             <span className="text-[8px] uppercase tracking-[0.2em] opacity-60">Day Streak</span>
          </div>
 
@@ -183,7 +183,7 @@ const SoundHunter = ({ onExit }: { onExit: () => void }) => {
     if (symbol === currentSound.symbol) {
       setFeedback('correct');
       setScore(s => ({ ...s, correct: s.correct + 1, total: s.total + 1, streak: s.streak + 1 }));
-      addXP(15);
+      addXP(15, 'game', 'sound-hunter');
       setTimeout(nextQuestion, 1200);
     } else {
       setFeedback('wrong');

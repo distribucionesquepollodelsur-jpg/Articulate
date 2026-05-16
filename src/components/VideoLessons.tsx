@@ -69,12 +69,19 @@ const LESSONS: Lesson[] = [
 
 export const VideoLessons = () => {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
-  const { addXP } = useGame();
+  const { addXP, completedLessons, completeLesson } = useGame();
 
   const handleLessonStart = (lesson: Lesson) => {
     if (lesson.isLocked) return;
     setSelectedLesson(lesson);
-    addXP(20);
+    addXP(10, 'lesson', lesson.id);
+  };
+
+  const handleFinishLesson = () => {
+    if (selectedLesson) {
+      completeLesson(selectedLesson.id);
+      setSelectedLesson(null);
+    }
   };
 
   return (
@@ -96,14 +103,14 @@ export const VideoLessons = () => {
                  <Clock className="text-brand-primary/40" size={20} />
                  <div>
                     <p className="text-[10px] uppercase font-mono font-bold tracking-widest opacity-40">Study Time</p>
-                    <p className="text-lg font-serif font-bold">14h 20m</p>
+                    <p className="text-lg font-serif font-bold">--h --m</p>
                  </div>
               </div>
               <div className="px-6 py-4 bg-brand-accent text-brand-paper rounded-[24px] shadow-xl shadow-brand-accent/20 flex items-center gap-4">
                  <CheckCircle size={20} />
                  <div>
                     <p className="text-[10px] uppercase font-mono font-bold tracking-widest opacity-60">Completed</p>
-                    <p className="text-lg font-serif font-bold">42 Lessons</p>
+                    <p className="text-lg font-serif font-bold">{completedLessons.length} Lessons</p>
                  </div>
               </div>
            </div>
@@ -111,50 +118,53 @@ export const VideoLessons = () => {
       </header>
 
       <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-8">
-        {LESSONS.map((lesson) => (
-          <motion.div
-            key={lesson.id}
-            whileHover={{ y: -10 }}
-            className="group relative flex flex-col bg-white border border-brand-primary/5 rounded-[40px] overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-brand-primary/10 transition-all cursor-pointer"
-            onClick={() => handleLessonStart(lesson)}
-          >
-             <div className="relative aspect-[16/10] overflow-hidden">
-                <img 
-                  src={lesson.thumbnail} 
-                  alt={lesson.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                />
-                <div className="absolute inset-0 bg-brand-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
-                   <div className="w-16 h-16 rounded-full bg-white text-brand-primary flex items-center justify-center shadow-2xl animate-in zoom-in-50 duration-300">
-                      {lesson.isLocked ? <Lock size={24} /> : <Play size={24} fill="currentColor" />}
-                   </div>
-                </div>
-                {lesson.isCompleted && (
-                   <div className="absolute top-4 right-4 bg-green-500 text-white p-2 rounded-full shadow-lg">
-                      <CheckCircle size={14} />
-                   </div>
-                )}
-                <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/60 backdrop-blur-md rounded-lg text-[10px] font-mono text-white font-bold">
-                   {lesson.duration}
-                </div>
-             </div>
+        {LESSONS.map((lesson) => {
+          const isDone = completedLessons.includes(lesson.id);
+          return (
+            <motion.div
+              key={lesson.id}
+              whileHover={{ y: -10 }}
+              className="group relative flex flex-col bg-white border border-brand-primary/5 rounded-[40px] overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-brand-primary/10 transition-all cursor-pointer"
+              onClick={() => handleLessonStart(lesson)}
+            >
+               <div className="relative aspect-[16/10] overflow-hidden">
+                  <img 
+                    src={lesson.thumbnail} 
+                    alt={lesson.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  />
+                  <div className="absolute inset-0 bg-brand-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                     <div className="w-16 h-16 rounded-full bg-white text-brand-primary flex items-center justify-center shadow-2xl animate-in zoom-in-50 duration-300">
+                        {lesson.isLocked ? <Lock size={24} /> : <Play size={24} fill="currentColor" />}
+                     </div>
+                  </div>
+                  {isDone && (
+                     <div className="absolute top-4 right-4 bg-green-500 text-white p-2 rounded-full shadow-lg">
+                        <CheckCircle size={14} />
+                     </div>
+                  )}
+                  <div className="absolute bottom-4 right-4 px-3 py-1 bg-black/60 backdrop-blur-md rounded-lg text-[10px] font-mono text-white font-bold">
+                     {lesson.duration}
+                  </div>
+               </div>
 
-             <div className="p-8 flex-1 flex flex-col">
-                <div className="flex gap-2 mb-4">
-                   {lesson.tags.map(tag => (
-                      <span key={tag} className="px-3 py-1 bg-brand-primary/5 rounded-full text-[9px] uppercase font-mono font-bold tracking-widest text-brand-primary/40">
-                         {tag}
-                      </span>
-                   ))}
-                </div>
-                <h3 className="text-xl font-serif font-bold mb-4 leading-tight group-hover:text-brand-accent transition-colors">{lesson.title}</h3>
-                <div className="mt-auto pt-6 border-t border-brand-primary/5 flex items-center justify-between text-[10px] uppercase font-mono font-bold tracking-widest text-brand-primary/40">
-                   <span>{lesson.level}</span>
-                   <ChevronRight size={14} />
-                </div>
-             </div>
-          </motion.div>
-        ))}
+               <div className="p-8 flex-1 flex flex-col">
+                  <div className="flex gap-2 mb-4">
+                     {lesson.tags.map(tag => (
+                        <span key={tag} className="px-3 py-1 bg-brand-primary/5 rounded-full text-[9px] uppercase font-mono font-bold tracking-widest text-brand-primary/40">
+                           {tag}
+                        </span>
+                     ))}
+                  </div>
+                  <h3 className="text-xl font-serif font-bold mb-4 leading-tight group-hover:text-brand-accent transition-colors">{lesson.title}</h3>
+                  <div className="mt-auto pt-6 border-t border-brand-primary/5 flex items-center justify-between text-[10px] uppercase font-mono font-bold tracking-widest text-brand-primary/40">
+                     <span>{lesson.level}</span>
+                     <ChevronRight size={14} />
+                  </div>
+               </div>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Interactive Player Simulation */}
@@ -180,14 +190,12 @@ export const VideoLessons = () => {
                     </div>
                  </div>
                  <div className="flex items-center gap-4">
-                    <div className="flex -space-x-3">
-                       {[1,2,3].map(i => (
-                          <div key={i} className="w-10 h-10 rounded-full border-2 border-brand-primary bg-brand-accent shadow-lg flex items-center justify-center text-[10px] font-bold text-white">
-                             {i}
-                          </div>
-                       ))}
-                    </div>
-                    <span className="text-white/60 text-xs font-bold font-mono">1,240 Watching</span>
+                    <button 
+                      onClick={handleFinishLesson}
+                      className="px-6 py-3 bg-brand-accent text-brand-paper rounded-full font-bold uppercase tracking-widest text-[10px] hover:scale-105 transition-transform"
+                    >
+                       Finish Lesson
+                    </button>
                  </div>
               </div>
 

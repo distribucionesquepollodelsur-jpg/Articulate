@@ -18,14 +18,17 @@ import { cn } from './lib/utils';
 import { useGame, GameProvider } from './contexts/GameContext';
 
 const Dashboard = ({ setView }: { setView: (v: string) => void }) => {
-  const { xp, streak, level } = useGame();
+  const { xp, streak, level, user } = useGame();
 
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
       <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
         <div className="space-y-2">
-          <h2 className="text-5xl font-serif font-bold tracking-tight">Welcome back, <span className="italic text-brand-accent">Maestro</span></h2>
-          <p className="text-xl text-brand-primary/40 font-medium tracking-tight">Your pronunciation today is sounding 12% more authentic.</p>
+          <h2 className="text-5xl font-serif font-bold tracking-tight">
+            Welcome back, <br/>
+            <span className="italic text-brand-accent">{user?.displayName?.split(' ')[0] || 'Linguist'}</span>
+          </h2>
+          <p className="text-xl text-brand-primary/40 font-medium tracking-tight">Your pronunciation logs are synced with our RP engine.</p>
         </div>
         <div className="flex gap-4 scroll-hidden overflow-x-auto pb-4 lg:pb-0">
           <div className="p-6 bg-white border border-brand-primary/5 rounded-[32px] flex flex-col items-center min-w-[120px] shadow-sm">

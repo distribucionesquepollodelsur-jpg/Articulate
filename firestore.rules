@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isEmailVerified() { return request.auth.token.email_verified == true; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // Validation Primitives
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    // Entity Validations
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['displayName', 'email', 'createdAt']) &&
+             data.displayName is string && data.displayName.size() <= 100 &&
+             data.email is string && data.email.size() <= 100 &&
+             data.createdAt == request.time;
+    }
+
+    function isValidUserProgress(data) {
+      return data.keys().hasAll(['xp', 'level', 'streak']) &&
+             data.xp is int && data.xp >= 0 &&
+             data.level is int && data.level >= 1 &&
+             data.streak is int && data.streak >= 0;
+    }
+
+    function isValidActivity(data) {
+      return data.keys().hasAll(['type', 'activityId', 'xpGained', 'timestamp']) &&
+             data.type in ['lesson', 'game', 'lab', 'studio'] &&
+             data.xpGained is int &&
+             data.timestamp == request.time;
+    }
+
+    // User Profile
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow create: if isOwner(userId) && isValidUserProfile(incoming());
+      allow update: if isOwner(userId) && isValidUserProfile(incoming()) && 
+                    incoming().email == existing().email &&
+                    incoming().createdAt == existing().createdAt;
+    }
+
+    // User Progress
+    match /users/{userId}/progress/data {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProgress(incoming());
+      allow update: if isOwner(userId) && isValidUserProgress(incoming());
+    }
+
+    // Activities
+    match /users/{userId}/activities/{activityId} {
+      allow list, get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidActivity(incoming());
+    }
+
+    // Leaderboard
+    match /leaderboard/global/entries/{userId} {
+      allow list: if isSignedIn();
+      allow get: if isSignedIn();
+      allow write: if isOwner(userId) && isValidUserProgress(incoming());
+    }
+  }
+}

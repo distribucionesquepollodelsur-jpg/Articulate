@@ -7,11 +7,13 @@ import React from 'react';
 import { Layout } from './components/Layout';
 import { IPAChart } from './components/IPAChart';
 import { ArticulationLab } from './components/ArticulationLab';
-import { CoursePortal } from './components/CoursePortal';
+import { VideoLessons } from './components/VideoLessons';
 import { Dictionary } from './components/Dictionary';
 import { Studio } from './components/Studio';
+import { Games } from './components/Games';
+import { Leaderboard } from './components/Leaderboard';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Trophy, Flame, ChevronRight, Mic2, Grid3X3, BookOpen, Search, Settings, Music } from 'lucide-react';
+import { Sparkles, Trophy, Flame, ChevronRight, Mic2, Grid3X3, BookOpen, Search, Settings, Music, Gamepad2, Award, Users, Play, ArrowRight } from 'lucide-react';
 import { cn } from './lib/utils';
 import { useGame, GameProvider } from './contexts/GameContext';
 
@@ -19,164 +21,153 @@ const Dashboard = ({ setView }: { setView: (v: string) => void }) => {
   const { xp, streak, level } = useGame();
 
   return (
-    <div className="space-y-12">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif leading-tight">
-            Good morning, <br />
-            <span className="italic">Linguist.</span>
-          </h1>
-          <p className="text-brand-primary/40 mt-4 text-xl font-serif italic">
-            "Speech is a mirror of the soul." — Publilius Syrus
-          </p>
+    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+        <div className="space-y-2">
+          <h2 className="text-5xl font-serif font-bold tracking-tight">Welcome back, <span className="italic text-brand-accent">Maestro</span></h2>
+          <p className="text-xl text-brand-primary/40 font-medium tracking-tight">Your pronunciation today is sounding 12% more authentic.</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-4 scroll-hidden overflow-x-auto pb-4 lg:pb-0">
           <div className="p-6 bg-white border border-brand-primary/5 rounded-[32px] flex flex-col items-center min-w-[120px] shadow-sm">
              <span className="text-[10px] uppercase font-mono tracking-widest font-bold opacity-40 mb-1">Level</span>
              <span className="text-3xl font-serif font-bold">{level}</span>
           </div>
-          <div className="p-6 bg-white border border-brand-primary/5 rounded-[32px] flex flex-col items-center min-w-[120px] shadow-sm">
+          <motion.div 
+            whileHover={{ y: -5 }}
+            className="p-6 bg-white border border-brand-primary/5 rounded-[42px] flex flex-col items-center min-w-[140px] shadow-xl shadow-brand-primary/5 cursor-pointer"
+            onClick={() => setView('leaderboard')}
+          >
              <Flame className="text-orange-500 mb-2" size={24} />
              <span className="text-3xl font-serif font-bold">{streak}</span>
-             <span className="text-[10px] uppercase font-mono tracking-widest font-bold opacity-40">Day Streak</span>
-          </div>
-          <div className="p-6 bg-brand-primary text-brand-paper rounded-[32px] flex flex-col items-center min-w-[120px] shadow-xl shadow-brand-primary/20">
-             <Trophy className="text-brand-accent mb-2" size={24} />
-             <span className="text-3xl font-serif font-bold">{xp.toLocaleString()}</span>
-             <span className="text-[10px] uppercase font-mono tracking-widest font-bold opacity-60">XP Total</span>
+             <span className="text-[10px] uppercase font-mono tracking-widest font-bold opacity-40 tracking-tighter">Day Streak</span>
+          </motion.div>
+          <div className="p-8 bg-brand-primary text-brand-paper rounded-[42px] flex flex-col items-center min-w-[160px] shadow-2xl shadow-brand-primary/20 bg-gradient-to-br from-brand-primary to-[#2A2A2A]">
+             <Trophy className="text-brand-accent mb-3" size={32} />
+             <span className="text-4xl font-serif font-bold mb-1">{xp.toLocaleString()}</span>
+             <span className="text-[10px] uppercase font-mono tracking-[0.2em] font-bold opacity-60">Total LXP</span>
           </div>
         </div>
       </header>
 
-      {/* Quick Actions */}
-      <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <motion.button 
-          whileHover={{ y: -5 }}
-          onClick={() => setView('ipa')}
-          className="p-8 bg-brand-primary text-brand-paper rounded-[40px] text-left space-y-6 shadow-2xl shadow-brand-primary/30 group"
-        >
-          <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-            <Grid3X3 size={24} />
-          </div>
-          <div>
-            <h3 className="text-2xl font-serif mb-2">Explore the IPA</h3>
-            <p className="text-brand-paper/60 text-sm leading-relaxed">Discover 44 phonemes of British English articulation.</p>
-          </div>
-          <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest font-bold text-brand-accent">
-            Open Chart <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-          </div>
-        </motion.button>
-
-        <motion.button 
-          whileHover={{ y: -5 }}
+          whileHover={{ y: -8, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => setView('lab')}
-          className="p-8 bg-white border border-brand-primary/5 rounded-[40px] text-left space-y-6 shadow-sm group"
+          className="group p-10 bg-white border border-brand-primary/5 rounded-[56px] text-left shadow-sm hover:shadow-2xl hover:shadow-brand-primary/10 transition-all flex flex-col h-[420px] overflow-hidden relative"
         >
-          <div className="w-12 h-12 bg-brand-primary/5 rounded-2xl flex items-center justify-center text-brand-primary">
-            <Mic2 size={24} />
+          <div className="w-16 h-16 bg-brand-primary/5 rounded-[24px] flex items-center justify-center text-brand-primary mb-8 group-hover:bg-brand-primary group-hover:text-brand-paper transition-all">
+            <Mic2 size={32} />
           </div>
-          <div>
-            <h3 className="text-2xl font-serif mb-2">Articulation Lab</h3>
-            <p className="text-brand-primary/40 text-sm leading-relaxed">Practice your pronunciation with our AI-powered coach.</p>
+          <h3 className="text-3xl font-serif font-bold mb-3">Articulation <span className="italic">Lab</span></h3>
+          <p className="text-brand-primary/40 leading-relaxed font-medium mb-8">Test your vocal accuracy with our advanced AI feedback engine. Real-time pitch and formants analysis.</p>
+          
+          <div className="mt-auto flex items-center justify-between">
+             <span className="px-4 py-2 bg-brand-primary/5 rounded-full text-[10px] uppercase font-mono font-bold tracking-widest text-brand-primary/40 group-hover:bg-brand-primary/10 transition-colors">Launch AI Coach</span>
+             <div className="w-12 h-12 rounded-full border border-brand-primary/10 flex items-center justify-center group-hover:bg-brand-primary group-hover:text-white transition-all">
+                <ChevronRight size={20} />
+             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest font-bold text-brand-primary/60">
-            Start Recording <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-          </div>
+          <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-brand-primary/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
         </motion.button>
 
         <motion.button 
-          whileHover={{ y: -5 }}
-          onClick={() => setView('lessons')}
-          className="p-8 bg-brand-accent text-brand-paper rounded-[40px] text-left space-y-6 shadow-2xl shadow-brand-accent/30 group"
+          whileHover={{ y: -8, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => setView('games')}
+          className="group p-10 bg-brand-accent rounded-[56px] text-left shadow-2xl shadow-brand-accent/20 transition-all flex flex-col h-[420px] relative overflow-hidden"
         >
-          <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
-            <BookOpen size={24} />
+          <div className="w-16 h-16 bg-white/20 rounded-[24px] flex items-center justify-center text-white mb-8 shadow-inner ring-1 ring-white/10">
+            <Gamepad2 size={32} />
           </div>
-          <div>
-            <h3 className="text-2xl font-serif mb-2">Continue Learning</h3>
-            <p className="text-brand-paper/80 text-sm leading-relaxed">Resume: "Vowels of South-East England" lesson.</p>
+          <h3 className="text-3xl font-serif font-bold text-brand-paper mb-3">Gaming Arena</h3>
+          <p className="text-brand-paper/70 leading-relaxed font-medium mb-8">Master sounds through play. Compete for ranks and unlock rare achievement badges.</p>
+          
+          <div className="mt-auto flex items-center justify-between">
+             <span className="px-4 py-2 bg-white/20 rounded-full text-[10px] uppercase font-mono font-bold tracking-widest text-white group-hover:bg-white/30 transition-colors">Start Hunting</span>
+             <div className="w-12 h-12 rounded-full bg-white text-brand-accent flex items-center justify-center shadow-lg transition-transform group-hover:translate-x-1">
+                <ChevronRight size={20} />
+             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest font-bold text-brand-paper">
-            Go to Lesson <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
-          </div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-[100px] rounded-full" />
         </motion.button>
 
         <motion.button 
-          whileHover={{ y: -5 }}
+          whileHover={{ y: -8, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           onClick={() => setView('studio')}
-          className="p-8 bg-brand-primary text-brand-paper rounded-[40px] text-left space-y-6 shadow-2xl shadow-brand-primary/30 group lg:col-span-3 border border-white/10"
+          className="group p-10 bg-white border border-brand-primary/5 rounded-[56px] text-left shadow-sm hover:shadow-2xl hover:shadow-brand-primary/10 transition-all flex flex-col h-[420px] relative overflow-hidden"
         >
-          <div className="w-12 h-12 bg-brand-accent/20 rounded-2xl flex items-center justify-center text-brand-accent">
-            <Music size={24} />
+          <div className="w-16 h-16 bg-brand-primary/5 rounded-[24px] flex items-center justify-center text-brand-primary mb-8 group-hover:bg-brand-primary group-hover:text-brand-paper transition-all">
+            <Music size={32} />
           </div>
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-            <div>
-              <h3 className="text-3xl font-serif mb-2">The <span className="italic">Studio</span></h3>
-              <p className="text-brand-paper/60 text-lg leading-relaxed max-w-xl">
-                Master rhythm, intonation, and connected speech by singing phonetically transcribed British songs.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 text-sm font-mono uppercase tracking-widest font-bold text-brand-accent shrink-0">
-              Start Session <ChevronRight size={18} className="group-hover:translate-x-2 transition-transform" />
-            </div>
+          <h3 className="text-3xl font-serif font-bold mb-3">Phonetic <span className="italic">Karaoke</span></h3>
+          <p className="text-brand-primary/40 leading-relaxed font-medium mb-8">Learn British English through the rhythm of music. Song lyrics presented exclusively in IPA.</p>
+          
+          <div className="mt-auto flex items-center justify-between">
+             <span className="px-4 py-2 bg-brand-primary/5 rounded-full text-[10px] uppercase font-mono font-bold tracking-widest text-brand-primary/40 group-hover:bg-brand-primary/10 transition-colors">Enter Studio</span>
+             <div className="w-12 h-12 rounded-full border border-brand-primary/10 flex items-center justify-center group-hover:bg-brand-primary group-hover:text-white transition-all">
+                <ChevronRight size={20} />
+             </div>
           </div>
         </motion.button>
       </section>
 
-      {/* Progress Section */}
-      <section className="grid lg:grid-cols-2 gap-8">
-        <div className="p-10 bg-white rounded-[48px] border border-brand-primary/5 space-y-8">
-          <div className="flex items-center justify-between">
-            <h4 className="text-2xl font-serif uppercase tracking-tight">Recent <span className="italic">History</span></h4>
-            <button className="text-xs font-mono uppercase tracking-widest font-bold opacity-40 hover:opacity-100 transition-opacity">View All</button>
-          </div>
-          
-          <div className="space-y-6">
-            {[
-              { sound: 'θ', name: 'Voiceless Dental Fricative', score: 92, time: '2 hours ago' },
-              { sound: 'æ', name: 'Near-Open Front Unrounded', score: 78, time: 'Daily Challenge' },
-              { sound: 'ʃ', name: 'Voiceless Postalveolar Fricative', score: 85, time: 'Yesterday' },
-            ].map((item, i) => (
-              <div 
-                key={i} 
-                onClick={() => setView('lab')}
-                className="flex items-center gap-6 group cursor-pointer"
-              >
-                <div className="text-3xl font-serif w-12 h-12 flex items-center justify-center bg-brand-primary/5 rounded-2xl group-hover:bg-brand-primary group-hover:text-brand-paper transition-all">
-                  {item.sound}
-                </div>
-                <div className="flex-1">
-                  <h5 className="font-medium text-sm text-brand-primary tracking-tight">{item.name}</h5>
-                  <span className="text-[10px] text-brand-primary/40 font-mono font-bold uppercase tracking-widest">{item.time}</span>
-                </div>
-                <div className="text-right">
-                  <div className="text-xl font-serif font-bold">{item.score}%</div>
-                  <div className="w-16 h-1.5 bg-brand-primary/5 rounded-full overflow-hidden mt-1">
-                    <div className="h-full bg-brand-accent transition-all duration-1000" style={{ width: `${item.score}%` }}></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="p-10 bg-brand-primary text-brand-paper rounded-[48px] space-y-8 shadow-2xl relative overflow-hidden">
-          <Sparkles className="absolute top-10 right-10 text-brand-accent opacity-20" size={120} />
-          <div className="relative z-10 space-y-6">
-            <h4 className="text-5xl font-serif leading-tight">Master <br /> <span className="italic text-brand-accent">Connected</span> Speech.</h4>
-            <p className="text-brand-paper/60 text-lg leading-relaxed max-w-sm">
-              Unlock the secrets of British fluidity by learning how sounds transform when we speak at natural speeds.
-            </p>
-            <div className="pt-4">
-              <button 
-                onClick={() => setView('lessons')}
-                className="px-10 py-5 bg-white text-brand-primary rounded-full font-bold text-lg uppercase tracking-widest hover:scale-105 transition-transform shadow-xl shadow-brand-primary/40"
-              >
-                Unlock Course
-              </button>
+      {/* Social Feed Concept */}
+      <section className="p-12 bg-white border border-brand-primary/5 rounded-[64px] shadow-sm flex flex-col lg:flex-row gap-12 items-center">
+         <div className="flex-1 space-y-6">
+            <div className="flex items-center gap-2">
+               <div className="px-3 py-1 bg-brand-accent/10 rounded-full text-[10px] uppercase font-mono font-bold text-brand-accent tracking-widest">Global Status</div>
+               <span className="text-[10px] uppercase font-mono font-bold tracking-widest text-brand-primary/20">Updated 2m ago</span>
             </div>
-          </div>
-        </div>
+            <h3 className="text-4xl font-serif font-bold leading-tight">Join the Elite <br/><span className="text-brand-accent italic">Phoneticists</span> Circle</h3>
+            <div className="flex -space-x-4 mb-6">
+               {[1,2,3,4,5].map(i => (
+                  <div key={i} className="w-12 h-12 rounded-full border-4 border-white bg-brand-primary/5 flex items-center justify-center text-[10px] font-bold text-brand-primary font-mono shadow-xl relative group cursor-pointer">
+                     <span className="group-hover:opacity-0 transition-opacity">USER {i}</span>
+                     <div className="absolute inset-0 bg-brand-accent opacity-0 group-hover:opacity-100 transition-opacity rounded-full flex items-center justify-center text-white scale-110">
+                        <Users size={16} />
+                     </div>
+                  </div>
+               ))}
+               <div className="w-12 h-12 rounded-full border-4 border-white bg-brand-accent text-white flex items-center justify-center text-xs font-bold shadow-xl cursor-pointer hover:scale-110 transition-transform">
+                  +2.5k
+               </div>
+            </div>
+            <button 
+              onClick={() => setView('leaderboard')}
+              className="px-8 py-4 bg-brand-primary text-brand-paper rounded-[24px] font-bold uppercase tracking-widest text-[10px] shadow-xl shadow-brand-primary/20 flex items-center gap-3 group"
+            >
+               <Award size={18} className="text-brand-accent" />
+               <span>View Full Leaderboards</span>
+               <ArrowRight size={16} className="opacity-40 group-hover:opacity-100 transition-opacity group-hover:translate-x-1" />
+            </button>
+         </div>
+         <div className="w-full lg:w-[450px] aspect-square bg-brand-paper rounded-[48px] border border-brand-primary/5 p-8 flex flex-col justify-center gap-8 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-accent opacity-5 blur-[100px] rounded-full" />
+            
+            <div className="p-6 bg-white rounded-[32px] shadow-xl shadow-brand-primary/5 border border-brand-primary/5 flex items-center gap-4 animate-in slide-in-from-right duration-700">
+               <div className="w-12 h-12 rounded-full bg-brand-accent flex items-center justify-center text-white font-bold text-xs uppercase shadow-lg shadow-brand-accent/20">AP</div>
+               <div>
+                  <p className="text-sm font-bold">Alice Phonetics</p>
+                  <p className="text-[9px] uppercase font-mono tracking-widest font-bold opacity-40 italic">Just unlocked "Vowel King"</p>
+               </div>
+               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="ml-auto w-10 h-10 rounded-full bg-brand-primary/5 flex items-center justify-center text-brand-accent">
+                  <Flame size={18} />
+               </motion.div>
+            </div>
+
+            <div className="p-6 bg-white rounded-[32px] shadow-xl shadow-brand-primary/5 border border-brand-primary/5 flex items-center gap-4 animate-in slide-in-from-left duration-1000 delay-300">
+               <div className="w-12 h-12 rounded-full bg-brand-primary/5 flex items-center justify-center text-brand-primary font-bold text-xs uppercase">JS</div>
+               <div>
+                  <p className="text-sm font-bold">James Stewart</p>
+                  <p className="text-[9px] uppercase font-mono tracking-widest font-bold opacity-40">Earned 500 XP in "Sound Hunter"</p>
+               </div>
+               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="ml-auto w-10 h-10 rounded-full bg-brand-primary/5 flex items-center justify-center text-brand-accent">
+                  <Trophy size={18} />
+               </motion.div>
+            </div>
+         </div>
       </section>
     </div>
   );
@@ -200,7 +191,9 @@ export default function App() {
             {view === 'home' && <Dashboard setView={setView} />}
             {view === 'ipa' && <IPAChart />}
             {view === 'lab' && <ArticulationLab />}
-            {view === 'lessons' && <CoursePortal setView={setView} />}
+            {view === 'lessons' && <VideoLessons />}
+            {view === 'games' && <Games />}
+            {view === 'leaderboard' && <Leaderboard />}
             {view === 'studio' && <Studio />}
             {view === 'dictionary' && <Dictionary />}
             {view === 'settings' && (

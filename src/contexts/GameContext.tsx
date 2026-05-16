@@ -21,12 +21,20 @@ import {
 } from 'firebase/firestore';
 import { handleFirestoreError, OperationType } from '../lib/firestore-utils';
 
+interface Recommendation {
+  type: 'lab' | 'lesson' | 'game' | 'explore';
+  activityId: string;
+  recommendation: string;
+  targetSound?: string;
+}
+
 interface GameState {
   xp: number;
   level: number;
   streak: number;
   achievements: string[];
   completedLessons: string[];
+  recommendation: Recommendation | null;
 }
 
 interface GameContextType extends GameState {
@@ -37,6 +45,7 @@ interface GameContextType extends GameState {
   addXP: (amount: number, type: 'lesson' | 'game' | 'lab' | 'studio' | 'explore', activityId: string) => Promise<void>;
   completeAchievement: (id: string) => Promise<void>;
   completeLesson: (id: string) => Promise<void>;
+  fetchRecommendation: () => Promise<void>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -49,8 +58,27 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     level: 1,
     streak: 0,
     achievements: [],
-    completedLessons: []
+    completedLessons: [],
+    recommendation: null,
   });
+
+  const fetchRecommendation = async () => {
+    if (!user) return;
+    try {
+      const response = await fetch('/api/adaptive/next', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userProgress: state,
+          recentActivity: [] // Could fetch from Firestore if needed
+        })
+      });
+      const data = await response.json();
+      setState(s => ({ ...s, recommendation: data }));
+    } catch (err) {
+      console.error("Failed to fetch recommendation:", err);
+    }
+  };
 
   // Auth Listener
   useEffect(() => {
@@ -63,7 +91,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           level: 1,
           streak: 0,
           achievements: [],
-          completedLessons: []
+          completedLessons: [],
+          recommendation: null
         });
       }
     });
@@ -79,13 +108,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onSnapshot(progressDoc, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
-        setState({
+        setState(s => ({
+          ...s,
           xp: data.xp || 0,
           level: data.level || 1,
           streak: data.streak || 0,
           achievements: data.achievements || [],
           completedLessons: data.completedLessons || []
-        });
+        }));
         setLoading(false);
       } else {
         // Initialize new user
@@ -121,6 +151,12 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return unsubscribe;
   }, [user]);
+
+  useEffect(() => {
+    if (user && !loading && !state.recommendation) {
+      fetchRecommendation();
+    }
+  }, [user, loading]);
 
   const login = async () => {
     const provider = new GoogleAuthProvider();
@@ -215,7 +251,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <GameContext.Provider value={{ ...state, user, loading, login, logout, addXP, completeAchievement, completeLesson }}>
+    <GameContext.Provider value={{ 
+      ...state, 
+      user, 
+      loading, 
+      login, 
+      logout, 
+      addXP, 
+      completeAchievement, 
+      completeLesson,
+      fetchRecommendation
+    }}>
       {children}
     </GameContext.Provider>
   );

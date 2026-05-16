@@ -13,9 +13,65 @@ import { Studio } from './components/Studio';
 import { Games } from './components/Games';
 import { Leaderboard } from './components/Leaderboard';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, Trophy, Flame, ChevronRight, Mic2, Grid3X3, BookOpen, Search, Settings, Music, Gamepad2, Award, Users, Play, ArrowRight } from 'lucide-react';
+import { Sparkles, Trophy, Flame, ChevronRight, Mic2, Grid3X3, BookOpen, Search, Settings, Music, Gamepad2, Award, Users, Play, ArrowRight, Crown } from 'lucide-react';
 import { cn } from './lib/utils';
 import { useGame, GameProvider } from './contexts/GameContext';
+
+import { BritishFlag, CommonwealthEmblem } from './components/CulturalSymbols';
+import { RoyalHeritageFrame } from './components/RoyalHeritageFrame';
+import { RoyalPortrait } from './components/RoyalPortrait';
+
+const RecommendationCard = ({ setView }: { setView: (v: string) => void }) => {
+  const { recommendation, fetchRecommendation } = useGame();
+  
+  if (!recommendation) return null;
+
+  const handleNavigate = () => {
+    const viewMap: Record<string, string> = {
+      'lab': 'lab',
+      'lesson': 'lessons',
+      'game': 'games',
+      'explore': 'ipa'
+    };
+    setView(viewMap[recommendation.type] || 'home');
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-8 bg-gradient-to-r from-brand-accent to-[#FF7A52] rounded-[48px] text-white shadow-2xl shadow-brand-accent/30 relative overflow-hidden group cursor-pointer"
+      onClick={handleNavigate}
+    >
+       <div className="relative z-10 space-y-4">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                <Sparkles size={20} />
+             </div>
+             <span className="text-[10px] uppercase font-mono font-bold tracking-[0.2em]">Adaptive Intelligence Recommendation</span>
+          </div>
+          <h3 className="text-3xl font-serif font-bold leading-tight max-w-xl">
+             {recommendation.recommendation}
+          </h3>
+          <div className="flex items-center gap-4">
+             <div className="px-6 py-3 bg-white text-brand-accent rounded-full font-bold uppercase tracking-widest text-[10px] group-hover:scale-105 transition-transform flex items-center gap-2">
+                <span>Start Session</span>
+                <ChevronRight size={14} />
+             </div>
+             <button 
+               onClick={(e) => { e.stopPropagation(); fetchRecommendation(); }}
+               className="text-[10px] font-mono font-bold uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity"
+             >
+                Re-Analyze My Level
+             </button>
+          </div>
+       </div>
+       <div className="absolute top-1/2 right-[-5%] -translate-y-1/2 opacity-10 group-hover:rotate-6 group-hover:scale-110 transition-all duration-700">
+          <Mic2 size={320} />
+       </div>
+    </motion.div>
+  );
+};
 
 const Dashboard = ({ setView }: { setView: (v: string) => void }) => {
   const { xp, streak, level, user } = useGame();
@@ -51,6 +107,41 @@ const Dashboard = ({ setView }: { setView: (v: string) => void }) => {
           </div>
         </div>
       </header>
+
+      <RecommendationCard setView={setView} />
+
+      <section className="col-span-full">
+         <div className="p-12 bg-white border border-brand-primary/5 rounded-[48px] flex flex-col md:flex-row items-center gap-12 relative overflow-hidden group">
+            <div className="flex-1 space-y-6 relative z-10">
+               <div className="flex items-center gap-4">
+                  <div className="w-12 h-8 rounded-md overflow-hidden shadow-sm">
+                     <BritishFlag className="w-full h-full object-cover" />
+                  </div>
+                  <span className="text-[10px] uppercase font-mono font-bold tracking-[0.3em] text-brand-primary/40">Linguistic Heritage</span>
+               </div>
+               <h3 className="text-4xl font-serif font-bold leading-tight">Master the <span className="italic">Received Pronunciation</span> Prestige.</h3>
+               <p className="text-brand-primary/60 text-lg leading-relaxed max-w-xl">
+                  Connect with the articulation patterns used by the BBC, the Royal Family, and esteemed academic institutions across the Commonwealth. 
+                  Our AI specifically targets the subtle distinctions of British phonetics.
+               </p>
+               <div className="flex flex-wrap gap-4">
+                  {['England', 'Scotland', 'Wales', 'N. Ireland', 'Canada', 'Australia'].map(territory => (
+                    <div key={territory} className="px-4 py-2 bg-brand-primary/5 rounded-full text-[9px] uppercase font-mono font-bold tracking-widest text-brand-primary/60 hover:bg-brand-accent/10 hover:text-brand-accent transition-colors">
+                       {territory}
+                    </div>
+                  ))}
+               </div>
+            </div>
+            <div className="relative w-full md:w-64 flex flex-col items-center gap-4">
+               <RoyalPortrait size="lg" className="z-10 group-hover:scale-105 transition-transform duration-700" />
+               <div className="flex items-center gap-2 px-4 py-2 bg-brand-primary text-brand-paper rounded-full shadow-lg relative z-20 -mt-6 backdrop-blur-md">
+                  <Crown size={14} className="text-brand-accent animate-pulse" />
+                  <span className="text-[9px] uppercase font-mono font-bold tracking-widest italic">Official RP Tradition</span>
+               </div>
+               <div className="absolute inset-0 bg-brand-accent/10 rounded-full blur-3xl scale-125 opacity-30 pointer-events-none" />
+            </div>
+         </div>
+      </section>
 
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <motion.button 

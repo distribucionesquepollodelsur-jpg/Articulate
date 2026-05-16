@@ -14,10 +14,14 @@ import {
   MessageCircle,
   HelpCircle,
   X,
-  Sparkles
+  Sparkles,
+  Crown
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useGame } from '../contexts/GameContext';
+import { useCulture } from '../contexts/CultureContext';
+import { VideoPlayer } from './VideoPlayer';
+import { BritishFlag } from './CulturalSymbols';
 
 interface Lesson {
   id: string;
@@ -25,44 +29,52 @@ interface Lesson {
   duration: string;
   level: string;
   thumbnail: string;
+  videoUrl: string;
+  videoType: string;
   tags: string[];
   isLocked?: boolean;
-  isCompleted?: boolean;
 }
 
 const LESSONS: Lesson[] = [
   {
     id: 'intro-ipa',
-    title: 'The Architecture of English Sounds',
+    title: 'The Architecture of British Sounds',
     duration: '12:40',
     level: 'Beginner',
-    thumbnail: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=400',
-    tags: ['IPA', 'Theory'],
-    isCompleted: true
+    thumbnail: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=400',
+    videoUrl: 'https://vjs.zencdn.net/v/oceans.mp4', // Still a placeholder but will update text to emphasize RP
+    videoType: 'video/mp4',
+    tags: ['IPA', 'Royal Academy']
   },
   {
     id: 'vowels-mastery',
-    title: 'Vowel Placement & Mouth Shapes',
+    title: 'Precision Vowels: The Queen\'s English',
     duration: '18:25',
-    level: 'Beginner',
-    thumbnail: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&q=80&w=400',
-    tags: ['Vowels', 'Articulation']
+    level: 'Intermediate',
+    thumbnail: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&q=80&w=400',
+    videoUrl: 'https://vjs.zencdn.net/v/oceans.mp4', 
+    videoType: 'video/mp4',
+    tags: ['Vowels', 'RP Accent']
   },
   {
     id: 'th-consonants',
-    title: 'Mastering the British /θ/ and /ð/',
+    title: 'The Fricative Mastery: /θ/ and /ð/',
     duration: '08:15',
-    level: 'Intermediate',
-    thumbnail: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&q=80&w=400',
-    tags: ['Consonants', 'British RP']
+    level: 'Beginner',
+    thumbnail: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=400',
+    videoUrl: 'https://vjs.zencdn.net/v/oceans.mp4',
+    videoType: 'video/mp4',
+    tags: ['Consonants', 'Phonetics']
   },
   {
     id: 'connected-speech',
-    title: 'Rhythm and Linking in Natural Speech',
+    title: 'Cultural Fluency: Linking & Intonation',
     duration: '24:50',
     level: 'Advanced',
-    thumbnail: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=400',
-    tags: ['Rhythm', 'Fluency'],
+    thumbnail: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=400',
+    videoUrl: 'https://vjs.zencdn.net/v/oceans.mp4',
+    videoType: 'video/mp4',
+    tags: ['Rhythm', 'Diplomatic English'],
     isLocked: true
   }
 ];
@@ -167,7 +179,7 @@ export const VideoLessons = () => {
         })}
       </div>
 
-      {/* Interactive Player Simulation */}
+      {/* Production-Grade Video Player Overlay */}
       <AnimatePresence>
         {selectedLesson && (
            <motion.div 
@@ -184,15 +196,15 @@ export const VideoLessons = () => {
                     >
                        <X size={24} />
                     </button>
-                    <div className="hidden sm:block">
-                       <h4 className="text-white font-serif text-lg font-bold">{selectedLesson.title}</h4>
-                       <p className="text-white/40 text-xs font-mono uppercase tracking-widest">Section 1: Theoretical Foundation</p>
+                    <div className="hidden sm:block text-white">
+                       <h4 className="font-serif text-xl font-bold">{selectedLesson.title}</h4>
+                       <p className="text-[10px] uppercase font-mono tracking-widest opacity-40">Production Stream • {selectedLesson.videoType}</p>
                     </div>
                  </div>
                  <div className="flex items-center gap-4">
                     <button 
                       onClick={handleFinishLesson}
-                      className="px-6 py-3 bg-brand-accent text-brand-paper rounded-full font-bold uppercase tracking-widest text-[10px] hover:scale-105 transition-transform"
+                      className="px-6 py-3 bg-brand-accent text-brand-paper rounded-full font-bold uppercase tracking-widest text-[10px] shadow-xl shadow-brand-accent/20 hover:scale-105 active:scale-95 transition-all"
                     >
                        Finish Lesson
                     </button>
@@ -200,91 +212,77 @@ export const VideoLessons = () => {
               </div>
 
               <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-                 <div className="flex-1 bg-black relative flex flex-col items-center justify-center group overflow-hidden">
-                    <img 
-                      src={selectedLesson.thumbnail} 
-                      className="w-full h-full object-cover opacity-60 blur-2xl absolute inset-0 scale-110" 
-                      alt="bg"
-                    />
-                    <div className="relative z-10 w-full max-w-4xl aspect-video bg-brand-paper rounded-[48px] shadow-2xl overflow-hidden group">
-                       <img src={selectedLesson.thumbnail} className="w-full h-full object-cover" alt="video" />
-                       <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                          <button className="w-24 h-24 rounded-full bg-white/90 backdrop-blur-xl text-brand-primary flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all">
-                             <Play size={40} fill="currentColor" />
-                          </button>
-                       </div>
+                 <div className="flex-1 bg-black relative flex flex-col items-center justify-center overflow-hidden">
+                    <div className="w-full max-w-5xl aspect-video relative z-10 p-4 lg:p-12">
+                       <VideoPlayer 
+                          src={selectedLesson.videoUrl} 
+                          type={selectedLesson.videoType}
+                          poster={selectedLesson.thumbnail}
+                          title={selectedLesson.title}
+                          onEnded={handleFinishLesson}
+                       />
                     </div>
                     
-                    {/* Floating Controls */}
-                    <div className="absolute bottom-12 inset-x-12 z-20 flex flex-col gap-6">
-                       <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden cursor-pointer group/seek">
-                          <div className="h-full w-1/3 bg-brand-accent relative">
-                             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-xl opacity-0 group-hover/seek:opacity-100 transition-opacity" />
-                          </div>
-                       </div>
-                       <div className="flex items-center justify-between text-white">
-                          <div className="flex items-center gap-8">
-                             <button><FastForward size={24} className="rotate-180" /></button>
-                             <button><Play size={28} fill="currentColor" /></button>
-                             <button><FastForward size={24} /></button>
-                             <div className="flex items-center gap-4 ml-4">
-                                <Volume2 size={20} />
-                                <div className="w-24 h-1 bg-white/20 rounded-full">
-                                   <div className="w-2/3 h-full bg-white" />
-                                </div>
-                             </div>
-                             <span className="text-sm font-mono opacity-60">04:20 / {selectedLesson.duration}</span>
-                          </div>
-                          <div className="flex items-center gap-8">
-                             <button className="px-3 py-1 rounded bg-white/10 text-xs font-bold font-mono">1.0x</button>
-                             <button><Maximize2 size={20} /></button>
-                          </div>
-                       </div>
+                    {/* Atmospheric background */}
+                    <div className="absolute inset-0 z-0">
+                       <img 
+                          src={selectedLesson.thumbnail} 
+                          className="w-full h-full object-cover opacity-20 blur-[100px] scale-150" 
+                          alt="bg"
+                       />
                     </div>
                  </div>
 
                  <div className="w-full lg:w-[450px] bg-white p-12 overflow-y-auto space-y-12">
                     <section className="space-y-6">
                        <div className="flex items-center justify-between">
-                          <h5 className="font-serif font-bold text-2xl">Lesson Notes</h5>
-                          <button className="p-3 rounded-full bg-brand-primary/5 text-brand-primary/40 hover:text-brand-primary transition-colors">
-                             <HelpCircle size={20} />
-                          </button>
+                          <h5 className="font-serif font-bold text-2xl">Linguistic Analysis</h5>
+                          <div className="w-10 h-10 bg-brand-accent/10 rounded-full flex items-center justify-center text-brand-accent">
+                             <Crown size={20} />
+                          </div>
                        </div>
-                       <p className="text-brand-primary/60 leading-relaxed font-medium">In this lesson, we explore the physiological basis of phonetics. We'll identify the key articulators used in British English and how their positioning creates distinct sounds on the IPA chart.</p>
-                       <div className="p-6 bg-brand-accent/10 rounded-3xl border border-brand-accent/20">
-                          <p className="text-xs font-bold text-brand-accent uppercase tracking-widest mb-2">Pro Tip</p>
-                          <p className="text-brand-primary/80 text-sm font-medium italic">Focus on the vibration of your vocal cords during the voiced consonants. Use your hand to feel the difference.</p>
+                       <p className="text-brand-primary/60 leading-relaxed font-medium">This adaptive lesson focuses on <strong>Received Pronunciation (RP)</strong>. Our AI has detected minor deviations in your vowel length; pay special attention to the lateral mouth movement demonstrated in section 2.</p>
+                       <div className="p-8 bg-brand-primary text-brand-paper rounded-[40px] shadow-2xl shadow-brand-primary/20 relative overflow-hidden">
+                          <div className="relative z-10">
+                             <div className="flex items-center gap-2 mb-4">
+                                <BritishFlag className="w-6 h-4 rounded-sm" />
+                                <p className="text-[10px] font-bold text-brand-accent uppercase tracking-widest">RP Smart Target</p>
+                             </div>
+                             <p className="text-lg font-serif italic mb-6">"Master the rhythmic stress of British discourse."</p>
+                             <div className="w-full h-1 bg-white/10 rounded-full">
+                                <div className="h-full w-1/4 bg-brand-accent" />
+                             </div>
+                          </div>
+                          <div className="absolute top-0 right-0 p-4 opacity-10">
+                             <Play size={48} />
+                          </div>
                        </div>
                     </section>
 
                     <section className="space-y-6">
-                       <h5 className="font-serif font-bold text-xl">Interactive Tasks</h5>
+                       <h5 className="font-serif font-bold text-xl">Interactive Milestones</h5>
                        <div className="space-y-3">
                           {[
-                             { label: 'Identify the Glottal Stop', xp: 50, done: true },
-                             { label: 'Map the Vowel Quadrilateral', xp: 100 },
-                             { label: 'Practice /th/ Minimal Pairs', xp: 75 }
+                             { label: 'Phonetic Foundation', xp: 50, done: true },
+                             { label: 'Articulation Accuracy Test', xp: 150 },
+                             { label: 'Shadowing Challenge', xp: 75 }
                           ].map(t => (
                              <button key={t.label} className={cn(
-                                "w-full p-6 rounded-3xl border text-left flex items-center justify-between transition-all",
-                                t.done ? "bg-green-50 border-green-100" : "bg-white border-brand-primary/5 hover:border-brand-primary/10"
+                                "w-full p-8 rounded-[32px] border text-left flex items-center justify-between transition-all group",
+                                t.done ? "bg-green-50 border-green-100" : "bg-white border-brand-primary/5 hover:border-brand-primary/20 hover:shadow-xl hover:shadow-brand-primary/5"
                              )}>
                                 <div>
-                                   <p className={cn("font-bold text-sm", t.done ? "text-green-700" : "text-brand-primary")}>{t.label}</p>
-                                   <p className="text-[10px] uppercase font-mono tracking-widest font-bold opacity-40">Challenge: {t.xp} XP</p>
+                                   <p className={cn("font-bold text-base mb-1", t.done ? "text-green-700" : "text-brand-primary")}>{t.label}</p>
+                                   <div className="flex items-center gap-2">
+                                      <div className="w-1.5 h-1.5 rounded-full bg-brand-accent" />
+                                      <p className="text-[10px] uppercase font-mono tracking-widest font-bold opacity-40">{t.xp} LXP Reward</p>
+                                   </div>
                                 </div>
-                                {t.done ? <CheckCircle className="text-green-500" size={20} /> : <div className="w-6 h-6 rounded-full border-2 border-brand-primary/10" />}
+                                {t.done ? <CheckCircle className="text-green-500" size={24} /> : <div className="w-6 h-6 rounded-full border border-brand-primary/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><ChevronRight size={16} /></div>}
                              </button>
                           ))}
                        </div>
                     </section>
-
-                    <button className="w-full py-6 bg-brand-primary text-brand-paper rounded-3xl font-bold uppercase tracking-widest shadow-2xl shadow-brand-primary/20 flex items-center justify-center gap-4 group">
-                       <Sparkles size={20} className="text-brand-accent" />
-                       <span>Ask AI Tutor</span>
-                       <MessageCircle size={20} className="opacity-40 group-hover:opacity-100 transition-opacity" />
-                    </button>
                  </div>
               </div>
            </motion.div>

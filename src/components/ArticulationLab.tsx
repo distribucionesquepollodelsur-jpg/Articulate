@@ -71,6 +71,27 @@ const MouthVisualizer = ({ active, sound }: { active: boolean, sound: any }) => 
   );
 };
 
+const Waveform = ({ isAnalyzing }: { isAnalyzing: boolean }) => (
+  <div className="flex items-center justify-center gap-1 h-32 w-full">
+    {[...Array(24)].map((_, i) => (
+      <motion.div
+        key={i}
+        animate={isAnalyzing ? {
+          height: [8, Math.random() * 80 + 20, 8],
+        } : {
+          height: [8, 12, 8],
+        }}
+        transition={{
+          repeat: Infinity,
+          duration: 0.5 + Math.random() * 0.5,
+          ease: "easeInOut"
+        }}
+        className="w-1.5 bg-brand-accent rounded-full opacity-40 shadow-[0_0_10px_var(--color-brand-accent)]"
+      />
+    ))}
+  </div>
+);
+
 export const ArticulationLab = () => {
   const [isRecording, setIsRecording] = React.useState(false);
   const [recordingBlob, setRecordingBlob] = React.useState<Blob | null>(null);
@@ -275,7 +296,15 @@ export const ArticulationLab = () => {
         {/* Right: Feedback & Analysis */}
         <div className="space-y-6">
           <AnimatePresence mode="wait">
-            {!feedback ? (
+          {isAnalyzing ? (
+            <div className="space-y-8 py-12">
+               <Waveform isAnalyzing={true} />
+               <div className="text-center space-y-2">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.4em] font-bold text-brand-accent animate-pulse">Calculating Formant Frequencies...</p>
+                  <p className="text-brand-primary/40 text-sm italic">Analyzing tongue root position and nasal resonance</p>
+               </div>
+            </div>
+          ) : !feedback ? (
               <motion.div 
                 key="placeholder"
                 initial={{ opacity: 0 }}

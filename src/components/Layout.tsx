@@ -16,8 +16,17 @@ import {
   Trophy,
   Flame,
   User,
-  Sparkles
+  Sparkles,
+  Github,
+  Mail
 } from 'lucide-react';
+import { auth } from '../lib/firebase';
+import { 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  GithubAuthProvider, 
+  OAuthProvider 
+} from 'firebase/auth';
 import { cn } from '../lib/utils';
 import { useGame } from '../contexts/GameContext';
 
@@ -85,6 +94,14 @@ export const Layout = ({ children, activeView, setView }: { children: React.Reac
   }
 
   if (!user) {
+    const loginWithProvider = async (provider: any) => {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        console.error("Auth failed:", error);
+      }
+    };
+
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-brand-paper p-6 relative overflow-hidden font-sans">
         {/* Background Decor */}
@@ -129,20 +146,37 @@ export const Layout = ({ children, activeView, setView }: { children: React.Reac
           </div>
 
           <motion.div 
-             className="flex flex-col gap-4 max-w-sm mx-auto"
+             className="flex flex-col gap-4 w-full max-w-sm mx-auto"
              initial={{ opacity: 0 }}
              animate={{ opacity: 1 }}
              transition={{ delay: 0.5 }}
           >
             <button 
-              onClick={login}
-              className="w-full py-6 bg-brand-primary text-brand-paper rounded-[28px] font-bold uppercase tracking-widest text-[12px] shadow-2xl shadow-brand-primary/20 hover:bg-[#222] hover:shadow-brand-primary/40 active:scale-[0.98] transition-all flex items-center justify-center gap-4 group relative overflow-hidden"
+              onClick={() => loginWithProvider(new GoogleAuthProvider())}
+              className="w-full py-5 bg-brand-primary text-brand-paper rounded-[24px] font-bold uppercase tracking-widest text-[10px] shadow-2xl shadow-brand-primary/20 hover:bg-[#222] transition-all flex items-center justify-center gap-4 group relative overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               <img src="https://www.google.com/favicon.ico" className="w-5 h-5 grayscale group-hover:grayscale-0 transition-all" alt="G" />
               <span>Continue with Google</span>
               <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
             </button>
+            
+            <div className="grid grid-cols-2 gap-4">
+               <button 
+                 onClick={() => loginWithProvider(new GithubAuthProvider())}
+                 className="py-4 bg-white border border-brand-primary/5 rounded-[20px] font-bold uppercase tracking-widest text-[9px] hover:bg-brand-primary/5 transition-all flex items-center justify-center gap-3"
+               >
+                 <Github size={16} />
+                 <span>GitHub</span>
+               </button>
+               <button 
+                 onClick={() => loginWithProvider(new OAuthProvider('microsoft.com'))}
+                 className="py-4 bg-white border border-brand-primary/5 rounded-[20px] font-bold uppercase tracking-widest text-[9px] hover:bg-brand-primary/5 transition-all flex items-center justify-center gap-3"
+               >
+                 <Mail size={16} />
+                 <span>Microsoft</span>
+               </button>
+            </div>
+
             <div className="flex items-center justify-center gap-6 pt-4">
                {[Trophy, Flame, GraduationCap].map((Icon, i) => (
                  <div key={i} className="flex flex-col items-center gap-2 opacity-30">

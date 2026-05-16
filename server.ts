@@ -6,6 +6,99 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// AI Provider Interface
+interface AIProvider {
+  name: string;
+  generateText(prompt: string, config?: any): Promise<string>;
+  generateSpeech(text: string, voice?: string): Promise<string>;
+  analyzeSpeech(audioBase64: string, prompt: string): Promise<any>;
+}
+
+// Gemini Implementation
+class GeminiProvider implements AIProvider {
+  name = "gemini";
+  private ai: GoogleGenAI;
+
+  constructor() {
+    this.ai = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY as string,
+    });
+  }
+
+  async generateText(prompt: string, config?: any): Promise<string> {
+    const response = await this.ai.models.generateContent({
+      model: config?.model || "gemini-3-flash-preview",
+      contents: prompt
+    });
+    return response.text || "";
+  }
+
+  async generateSpeech(text: string, voice: string = "Kore"): Promise<string> {
+    const response = await this.ai.models.generateContent({
+      model: "gemini-3.1-flash-tts-preview",
+      contents: [{ parts: [{ text }] }],
+      config: {
+        responseModalities: [Modality.AUDIO],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: voice },
+          },
+        },
+      },
+    });
+    return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || "";
+  }
+
+  async analyzeSpeech(audioBase64: string, prompt: string): Promise<any> {
+    const response = await this.ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [
+        { parts: [{ text: prompt }] },
+        {
+          parts: [{
+            inlineData: {
+              mimeType: "audio/webm",
+              data: audioBase64
+            }
+          }]
+        }
+      ],
+      config: {
+        responseMimeType: "application/json"
+      }
+    });
+    return JSON.parse(response.text || "{}");
+  }
+}
+
+// Orchestrator
+class AIOrchestrator {
+  private providers: Record<string, AIProvider> = {};
+  private activeProviderName: string = "gemini";
+
+  constructor() {
+    this.providers["gemini"] = new GeminiProvider();
+    // Easily add OpenAIProvider, ClaudeProvider here in production
+  }
+
+  get activeProvider(): AIProvider {
+    return this.providers[this.activeProviderName];
+  }
+
+  async runTask<T>(task: (provider: AIProvider) => Promise<T>): Promise<T> {
+    try {
+      return await task(this.activeProvider);
+    } catch (error: any) {
+      console.error(`AI Task failed with ${this.activeProviderName}:`, error);
+      // Implement fallback logic here:
+      // if (this.activeProviderName === "gemini") { this.activeProviderName = "openai"; ... }
+      throw error;
+    }
+  }
+}
+
+const orchestrator = new AIOrchestrator();
+
 // Dictionary of sounds and their better phonetic descriptions for TTS
 const SOUND_TTS_HINTS: Record<string, string> = {
   'iː': 'vowel sound ee as in see',
@@ -30,19 +123,9 @@ async function startServer() {
 
   app.use(express.json({ limit: '10mb' }));
 
-  // Gemini SDK setup
-  const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build',
-      }
-    }
-  });
-
   // API Routes
   app.get("/api/health", (req, res) => {
-    res.json({ status: "ok" });
+    res.json({ status: "ok", aiProvider: orchestrator.activeProvider.name });
   });
 
   app.post("/api/tts", async (req, res) => {
@@ -54,24 +137,12 @@ async function startServer() {
         return res.json({ audio: AUDIO_CACHE[cacheKey], cached: true });
       }
       
-      const prompt = symbol 
+      const promptText = symbol 
         ? `Say the British English phoneme: ${SOUND_TTS_HINTS[symbol] || symbol}.` 
         : `Say clearly in a British accent: ${text}`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-1.5-flash",
-        contents: [{ parts: [{ text: prompt }] }],
-        config: {
-          responseModalities: [Modality.AUDIO],
-          speechConfig: {
-            voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: 'Kore' },
-            },
-          },
-        },
-      });
+      const base64Audio = await orchestrator.runTask(p => p.generateSpeech(promptText));
 
-      const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
       if (base64Audio) {
         AUDIO_CACHE[cacheKey] = base64Audio;
         res.json({ audio: base64Audio });
@@ -80,7 +151,6 @@ async function startServer() {
       }
     } catch (error: any) {
       console.error('TTS Error:', error);
-      // If it's a quota error, we send a specific status
       const status = error.message?.includes('429') || error.message?.includes('quota') ? 429 : 500;
       res.status(status).json({ error: error.message });
     }
@@ -111,27 +181,68 @@ async function startServer() {
         }
       `;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [
-          { text: prompt },
-          {
-            inlineData: {
-              mimeType: "audio/webm", // Usually webm from browser MediaRecorder
-              data: audio // base64
-            }
-          }
-        ],
-        config: {
-          responseMimeType: "application/json"
-        }
-      });
-
-      res.json(JSON.parse(response.text || "{}"));
+      const feedback = await orchestrator.runTask(p => p.analyzeSpeech(audio, prompt));
+      res.json(feedback);
     } catch (error: any) {
-      console.error("Gemini Error:", error);
+      console.error("AI Error:", error);
       res.status(500).json({ error: error.message });
     }
+  });
+
+  // Adaptive Learning Endpoint
+  app.post("/api/adaptive/next", async (req, res) => {
+    try {
+      const { userProgress, recentActivity } = req.body;
+      
+      const prompt = `
+        Based on these user stats: ${JSON.stringify(userProgress)}
+        And recent activity: ${JSON.stringify(recentActivity)}
+        
+        Recommend the NEXT best activity for this British English accent student.
+        Choose from:
+        - "lab": Practice a specific sound
+        - "lesson": Watch a video tutorial
+        - "game": Play a reinforcement game
+        - "explore": Browse the IPA chart
+        
+        Provide the response in JSON format:
+        {
+          "type": "lab" | "lesson" | "game" | "explore",
+          "activityId": "string",
+          "recommendation": "string",
+          "targetSound": "string" (optional)
+        }
+      `;
+
+      const recommendation = await orchestrator.runTask(p => p.generateText(prompt, { model: "gemini-3-flash-preview" }));
+      res.json(JSON.parse(recommendation));
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Dynamic IPA Lookup
+  app.post("/api/lookup", async (req, res) => {
+    try {
+      const { word } = req.body;
+      const prompt = `Convert the British English word "${word}" to IPA. Provide ONLY the IPA characters between slashes, e.g., /heə/. Do not include any other text.`;
+      const ipa = await orchestrator.runTask(p => p.generateText(prompt, { model: "gemini-3-flash-preview" }));
+      res.json({ word, ipa: ipa.trim() });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Culture & Monarchy Endpoint
+  app.get("/api/culture/monarchy-state", (req, res) => {
+    // In a real prod environment, this would hit an official news API or a curated CMS
+    res.json({ 
+      state: "normal", 
+      monarch: {
+        name: "Charles III",
+        accession: "2022-09-08"
+      }
+    });
   });
 
   // Vite middleware for development

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Trophy, 
   Crown, 
@@ -78,7 +78,12 @@ export const Leaderboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end py-12 px-6">
           {/* Silver - 2nd Place */}
           {topThree[1] && (
-            <div className="relative p-10 bg-white border border-brand-primary/5 rounded-[48px] flex flex-col items-center text-center shadow-sm order-2 md:order-1 h-[280px]">
+            <motion.div 
+               initial={{ opacity: 0, y: 50 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ delay: 0.1, duration: 0.8 }}
+               className="relative p-10 bg-white border border-brand-primary/5 rounded-[48px] flex flex-col items-center text-center shadow-sm order-2 md:order-1 h-[280px]"
+            >
               <div className="absolute top-0 right-0 p-6">
                 <span className="px-3 py-1 bg-brand-primary/5 rounded-full text-[10px] font-mono font-bold text-brand-primary/40 uppercase">Silver</span>
               </div>
@@ -96,12 +101,17 @@ export const Leaderboard = () => {
               <div className="text-brand-primary/40 text-[10px] uppercase font-mono font-bold tracking-widest">
                 {topThree[1].xp.toLocaleString()} XP
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Gold - 1st Place */}
           {topThree[0] && (
-            <div className="relative p-12 bg-brand-primary text-brand-paper rounded-[56px] flex flex-col items-center text-center shadow-2xl scale-110 z-10 order-1 md:order-2 h-[340px]">
+            <motion.div 
+               initial={{ opacity: 0, y: 70 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ delay: 0, duration: 0.8, type: 'spring', bounce: 0.4 }}
+               className="relative p-12 bg-brand-primary text-brand-paper rounded-[56px] flex flex-col items-center text-center shadow-2xl scale-110 z-10 order-1 md:order-2 h-[340px]"
+            >
               <div className="absolute top-0 right-0 p-6">
                 <Crown className="text-brand-accent animate-pulse" size={32} />
               </div>
@@ -120,12 +130,17 @@ export const Leaderboard = () => {
                 <Flame size={16} className="text-orange-500" />
                 <span className="text-[10px] uppercase font-mono font-bold tracking-[0.2em]">{topThree[0].xp.toLocaleString()} XP</span>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Bronze - 3rd Place */}
           {topThree[2] && (
-            <div className="relative p-10 bg-white border border-brand-primary/5 rounded-[48px] flex flex-col items-center text-center shadow-sm order-3 h-[240px]">
+            <motion.div 
+               initial={{ opacity: 0, y: 50 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ delay: 0.2, duration: 0.8 }}
+               className="relative p-10 bg-white border border-brand-primary/5 rounded-[48px] flex flex-col items-center text-center shadow-sm order-3 h-[240px]"
+            >
               <div className="absolute top-0 right-0 p-6">
                  <span className="px-3 py-1 bg-brand-primary/5 rounded-full text-[10px] font-mono font-bold text-amber-800/40 uppercase">Bronze</span>
               </div>
@@ -143,7 +158,7 @@ export const Leaderboard = () => {
               <div className="text-brand-primary/40 text-[10px] uppercase font-mono font-bold tracking-widest">
                 {topThree[2].xp.toLocaleString()} XP
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       ) : (
